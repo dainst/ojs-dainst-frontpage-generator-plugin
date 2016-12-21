@@ -1,4 +1,30 @@
 <?php
+/**
+ * 
+ * plugin that generated front pages for  our pfds
+ * 
+ * it is a little bit complicated structures since here come together the OO-Strcutires from OJS, TCPDF and the importer wor wich
+ * this code was previously written
+ * 
+ * dfm (extends GenericPlugin) = OJS plugin
+ *  |
+ *  +- creates: frontpageCreator = class to sum up functions to retrieve the data for frontapge and do the hard file stuff
+ *  |            |
+ *  |            +- creates: logger
+ *  |            +- creates: \dfm\journal (or extending \dfm\journals/{xxx}) = bring the metdata in a form we want on the frointpage and so
+ *  |                         |
+ *  |                         +- uses: logger
+ *  |                         +- creates: daiPDF (extends TCPDF) = a TCPDF implementation as TCPDF works like that
+ *  +- creates: pdfMetadata = class to sum up functions to write metadata in the PDF
+ *  
+ * 
+ * 
+ * 
+ * 
+ */
+
+
+
 import('lib.pkp.classes.plugins.GenericPlugin');
 
 class dfm extends GenericPlugin {
@@ -106,125 +132,9 @@ class dfm extends GenericPlugin {
 	
 	/* the function itself */ 
 	
-	var $messages = []; // format: {'text': <string>, 'type': <string:alert,danger,...>}
-	
-	var $galleysToUpdate = []; // format: {'galley': <ArticleGalley>, 'articleId': <int>}
-	
-	function message($msg, $type = 'default') {
-		$numtypes = array(
-			1 => 'warning',
-			2 => 'danger'
-		);
-		if (is_numeric($type) and in_array($type, $numtypes)) {
-			$type = $numtypes[$type];
-		}
-		$this->messages[] = array(
-			"text" => $msg,
-			"type" => $type
-		);
-	}
-	
-	function registerGalleys($galleys, $articleId) {
-		if (!is_array($galleys)) {
-			$galleys = array($galleys);
-		}
-		
-		foreach ($galleys as $galley) {
-			
-			if (!$galley or (get_class($galley) != "ArticleGalley")) {
-				$this->message("galley skipped, no galley: " . print_r($galley,1),1);
-				continue;
-			}
-				
-			if (!$galley->isPdfGalley()) {
-				$this->message("galley skipped, no pdf galley",1);
-				continue;
-			}
-			
-			if ($galley->_data['fileStage'] != 7) {
-				$this->message("galley skipped, not public", 1);
-				continue;
-			}
-			
-			$this->galleysToUpdate[] = array(
-				'galley' => $galley,
-				'articleId' => $articleId
-			);
-		}
-
-	}
-	
 	function startUpdateFrontapges($id, $type) {
-		$type = "journal";
-		$id = 2;
-		try {
-			if ($type == "journal") {
-				$this->getJournalGalleys($id);
-			} elseif ($type == "article") {
-				$this->getArticleGalleys($id);
-			} elseif ($type == "galley") {
-				$this->getGalley($id);
-			}
-			$this->updateFrontpages();
-			
-		} catch (Exception $e) {
-			echo "<div style='background:red'>ERROR:> " . $e->getMessage() . "</div>";
-		}
-		
-		foreach ($this->messages as $msg) {
-			echo "<div class='alert-{$msg['type']}'>{$msg['text']}</div>";
-		}
-	}
-	
-
-	
-	function getGalley($id) {
-		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
-		$galley =& $galleyDao->getGalley($id);		
-		$this->registerGalleys($galley, 1234564564); //!?s
-	}
-
-	function getArticleGalleys($id) {
-		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
-		$this->registerGalleys($galleyDao->getGalleysByArticle($id), $id);
-	}
-	
-	function getJournalGalleys($id) {
-		$articleDao =& DAORegistry::getDAO('ArticleDAO');
-		$result = $articleDao->getArticlesByJournalId($id);
-
-		foreach ($result->records as $record) {
-			$this->getArticleGalleys($record["article_id"]);
-		}
-		
-	}
-	
-	function updateFrontpages() {
-		if (!$this->galleysToUpdate or !count($this->galleysToUpdate)) {
-			throw new Exception("no galleys given");
-		}
-		foreach ($this->galleysToUpdate as $galleyItem) {
-			$this->updateFrontpage($galleyItem);
-		}
-	}
-	
-	function updateFrontpage($galleyItem) {
-		$articleId = $galleyItem['articleId'];
-		$galley = $galleyItem['galley'];
-		
-		echo "<hr><div><b>UPDATE ",$articleId,"</b><pre>";
-		
-		import('classes.file.ArticleFileManager');
-		$articleFileManager = new ArticleFileManager($articleId);
-		$articleFile = $articleFileManager->getFile($galley->_data['fileId']);
-		
-		$path = $articleFileManager->filesDir .  $articleFileManager->fileStageToPath($articleFile->getFileStage()) . '/' . $articleFile->getFileName();
-		$this->message('updateing file ' . $path . ' of article ' . $articleId);
-		
-		
-		
-		var_dump($path);
-		echo "</pre></div><hr>";
+		require_once('classes/frontpageCreator.class.php');
+		$frontpageCreator = new frontpageCreator($id, $type);
 	}
 }
 ?>
