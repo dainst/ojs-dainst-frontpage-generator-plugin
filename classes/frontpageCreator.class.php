@@ -9,8 +9,11 @@ class frontpageCreator {
 	
 	function __construct($plugin) {
 		$this->plugin = $plugin;
-		require_once("logger.class.php");
-		$this->log = new logger;
+		require_once("pdfWorker/logger.class.php");
+		$this->log = new logger();
+		/*
+		error_reporting(E_ALL & ~ E_DEPRECATED);
+		ini_set('display_errors', 'on');//*/
 	}
 	
 	function runFrontpageUpate($id, $type) {
@@ -26,18 +29,18 @@ class frontpageCreator {
 			} elseif ($type == "galley") {
 				$this->getGalley($id);
 			}
-			$this->updateFrontpages();
+			$this->processList();
 	
 		} catch (Exception $e) {
 			echo "<div style='background:red'>ERROR:> " . $e->getMessage() . "</div>";
 		}
 		echo "<hr><b>Warnings</b>";
 		foreach ($this->log->warnings as $msg) {
-			echo "<div class='alert-warning'>$msg</div>";
+			echo "<div class='alert-warning'><pre>$msg</pre></div><br>";
 		}
 		echo "<hr>";
 		foreach ($this->log->log as $msg) {
-			echo "<div class='alert-warning'>$msg</div>";
+			echo "<div class=''>$msg</div>";
 		}
 	}
 	
@@ -112,16 +115,43 @@ class frontpageCreator {
 	}
 
 	
-	function updateFrontpages() {
+	function processList() {
 		if (!$this->galleysToUpdate or !count($this->galleysToUpdate)) {
 			throw new Exception("no galleys given");
 		}
 		foreach ($this->galleysToUpdate as $galleyItem) {
-			$this->updateFrontpage($galleyItem);
+			$this->processItem($galleyItem);
 		}
 	}
 	
-	function updateFrontpage($galleyItem) {
+	function processItem($galleyItem) {
+		$this->log->log('update galley of article ' . $galleyItem['articleId']);
+			
+		echo "<hr><div><b>UPDATE ",$galleyItem['articleId'],"</b><pre>";
+		
+		$journalController = $this->getJournalController($galleyItem);
+		$newFrontmatterFile = $journalController->createFrontPage();
+		$fileToUpdate = $journalController->fileToUpdate;
+				
+		$journalController->updateFrontpage($newFrontmatterFile, $fileToUpdate);
+		$journalController->updatePDFMetadata($fileToUpdate);		
+
+		
+		echo "</pre></div>";
+	}
+	
+
+		
+	
+	/**
+	 * collect all data, wich we need for new frontpage,
+	 * and also for new PDF-metadata
+	 * 
+	 * 
+	 * @param unknown $galleyItem
+	 * @return $journal instance 
+	 */
+	function getJournalController($galleyItem) {
 
 		// do the OJS object madness (wich clearly emerged from a poor java-bloated mind)
 		$articleId = $galleyItem['articleId'];
@@ -137,37 +167,33 @@ class frontpageCreator {
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
 		$articleFile = $articleFileManager->getFile($galley->_data['fileId']);
-		$path = $articleFileManager->filesDir .  $articleFileManager->fileStageToPath($articleFile->getFileStage()) . '/' . $articleFile->getFileName();
+		$fileToUpdate = $articleFileManager->filesDir .  $articleFileManager->fileStageToPath($articleFile->getFileStage()) . '/' . $articleFile->getFileName();
 		
-		// now that we have everything, we can create our front page		
-		$this->log->log('update file ' . $path . ' of article ' . $articleId . ' in journal ' . $journalAbb);
-		
-		// get our own, frontpage creating object
-		require_once("journal.class.php");		
-		if (stream_resolve_include_path("journals/{$journalAbb}.class.php")) {			
-			require_once("journals/{$journalAbb}.class.php");
-			$class = "\\dfm\\journals\\{$journalAbb}";		
+				
+		// get journal Controller
+		// some journals (may) need special treatment for example chiron has two different publishers, but we want only print the right one one th frontpage
+		require_once("pdfWorker/pdfWorker.class.php");
+		if (stream_resolve_include_path("pdfWorker/journalSpecific/{$journalAbb}.class.php")) {
+			require_once("pdfWorker/journalSpecific/{$journalAbb}.class.php");
+			$class = "\\dfm\\pdfWorkers\\{$journalAbb}";
 		} else {
-			$class = "\\dfm\\journal";
-		}		
-		
+			$class = "\\dfm\\pdfWorker";
+		}
 		$journalController = new $class(
-			$this->log, 
+			$this->log,
 			array(
 				'tmp_path'		=> '/var/www/tmp',
 				'tcpdf_path'	=> $this->plugin->pluginPath . '/tcpdf',
-				'files_path'	=> $this->plugin->pluginPath . '/classes/journals/files' // artwork files and stuff
+				'files_path'	=> $this->plugin->pluginPath . '/classes/pdfWorker/files' // artwork files and stuff
 			)
-		);
-
+		);		
 		$this->log->log('using controller ' . $class);
 		
 		// fill it with data
-		$journalController->createMetadata(array(
+		$meta = array(
 			'article_author'	=> $this->_noDoubleSpaces($article->getAuthorString(false, ' – ')),
 			'article_title'		=> $this->_getLocalized($article->_data['cleanTitle']),
 			'editor'			=> '<br>' . $this->_noLineBreaks($journalSettings['contactName'] . ' ' . $this->_getLocalized($journalSettings['contactAffiliation'])),
-			'issn'				=> isset($journalSettings['onlineIssn']) ? $journalSettings['onlineIssn'] : (isset($journalSettings['printIssn']) ?	$journalSettings['printIssn'] : '###'),
 			'journal_title'		=> $this->_getLocalized($journalSettings['title']), 
 			'journal_url'		=> Config::getVar('general', 'base_url') . '/' . $journalAbb,
 			'pages'				=> $article->_data['pages'],
@@ -177,15 +203,22 @@ class frontpageCreator {
 			'urn'				=> isset($galley->_data['pub-id::other::urnDNB']) ? $galley->_data['pub-id::other::urnDNB'] : (isset($galley->_data['pub-id::other::urn']) ? $galley->_data['pub-id::other::urn'] : '###'), // take the URn created by the ojsde-dnburn pugin, if not present try the normla pkugins urn or set ###
 			'volume'			=> $issue->_data['volume'],
 			'year'				=> $issue->_data['year'],
-			'zenon_id'			=> '####'
-		));
+			'zenon_id'			=> '##'
+		);
 		
-		echo "<hr><div><b>UPDATE ",$articleId,"</b><pre>";
-		//print_r();
-		print_r($journalController->metadata);
-		$journalController->createFrontPage();
-		echo "</pre></div>";
+		
+		if (isset($journalSettings['onlineIssn']) and $journalSettings['onlineIssn']) {
+			$meta['issn_online']= $journalSettings['onlineIssn'];
+		} elseif (isset($journalSettings['printIssn']) and $journalSettings['printIssn']) {
+			$meta['issn_printed']= $journalSettings['printIssn'];
+		}
+		
+		$journalController->createMetadata($meta);
+		$journalController->fileToUpdate = $fileToUpdate;
+		return $journalController;
 	}
+
+
 	
 	private function _noLineBreaks($string) {
 		return preg_replace( "/\r|\n/", " ", $string);

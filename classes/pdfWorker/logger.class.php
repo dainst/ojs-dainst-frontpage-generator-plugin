@@ -56,7 +56,7 @@ class logger {
 		return str_pad((microtime(true) - $this->_lockstart), 18, '0', STR_PAD_RIGHT) . ' ';
 	}
 	
-	function __construct($debug = array()) {
+	function __construct($debug = true) {
 		$this->debug = $debug;
 		$this->_lockstart = microtime(true);
 	}

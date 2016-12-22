@@ -14,9 +14,13 @@
 		"de": "Weitere Informationen unter",
 		"en": "For further information see"
 	},
-	"issn": {
+	"issn_printed": {
 		"de": "ISSN der gedruckten Ausgabe",
 		"en": "ISSN of the printed edition"
+	},
+	"issn_online": {
+		"de": "ISSN der online Ausgabe",
+		"en": "ISSN of the online edition"
 	},
 	"publisher": {
 		"de": "Verlag",

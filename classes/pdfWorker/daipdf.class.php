@@ -131,7 +131,8 @@ class daiPDF extends TCPDF {
 		$this->daiPrint('<a style="color:black;text-decoration:none" href="' . $this->metadata['url'] . '">' . $this->metadata['url'] . '</a><b style="color:rgb(128,130,133)"> / ' . $this->metadata['urn'] . '</b>');
 		$this->daiPrintInfo('editor');
 		$this->daiPrintInfo('journal_url');
-		$this->daiPrintInfo('issn');
+		$this->daiPrintInfo('issn_online');
+		$this->daiPrintInfo('issn_printed');
 		$this->daiPrintInfo('publisher');
 	
 		// (c)
@@ -160,21 +161,27 @@ class daiPDF extends TCPDF {
 			"calibrib"
 		);
 	
+		$success = true;
+		
 		foreach ($fonts as $font) {
 			if (!file_exists("{$this->settings['tcpdf_path']}/fonts/$font.php")) {
 				if (!is_writable("{$this->settings['tcpdf_path']}/fonts")) {
-					throw new \Exception("TCPDF fints directory not writable");
+					throw new \Exception("TCPDF fonts directory not writable");
 				}
 				if (TCPDF_FONTS::addTTFfont("{$this->settings['files_path']}/$font.ttf", 'TrueTypeUnicode', 32) === false) {
 					$this->logger->warning("font $font not installed");
+					$success = false;
 				} else {
-					$this->logger->log("font $font successfull installed");
+					$this->logger->debug("font $font successfull installed");
 				}
 			} else {
-				$this->logger->log("font $font allready installed");
+				$this->logger->debug("font $font allready installed");
 			}
 		}
 	
+		if (!$success) {
+			throw new \Exception("TCPDF fonts missing & could not be installed");
+		}
 	
 	}
 	
@@ -222,6 +229,9 @@ class daiPDF extends TCPDF {
 	 * @param unknown $font
 	 */
 	public function daiPrintInfo($field, $font = '1') {
+		if (isset($this->metadata[$field]) and ($this->metadata[$field] == '')) {
+			return;
+		}
 		$this->daiPrint($this->lang->$field->de . '<span style="color:rgb(128,130,133)">' . ' / ' . $this->lang->$field->en . (isset($this->metadata[$field]) ? '</span> <span style="font-family:calibrib">' . $this->metadata[$field] . '</span>' : ''), $font);
 	}
 	

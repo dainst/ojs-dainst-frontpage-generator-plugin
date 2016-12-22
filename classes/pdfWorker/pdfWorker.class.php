@@ -15,7 +15,7 @@
  */
 
 namespace dfm {
-	class journal {
+	class pdfWorker {
 		public $settings = array(
 			'tcpdf_path'		=> '',
 			'tmp_path'			=> '',
@@ -31,7 +31,8 @@ namespace dfm {
 			'article_author'	=> '###', 
 			'article_title'		=> '###',
 			'editor'			=> '###',
-			'issn'				=> '###',
+			'issn_online'		=> '',
+			'issn_printed'		=> '',
 			'issue_tag'			=> '###',
 			'journal_title'		=> '###',
 			'journal_sub'		=> '###',
@@ -43,15 +44,15 @@ namespace dfm {
 			'urn'				=> '###',
 			'volume'			=> '###',
 			'year'				=> '###',
-			'zenon_id'			=> '###'
+			'zenon_id'			=> ''
 		);
+		// '###' -> means missing, will be printed and warning, '' means unset, will not be printed
 		
 		public $doCut 		= true;
 		public $doImport 	= true;
 		
 		public $lang = array();
-		
-		
+				
 		public $logger;
 		
 		function __construct($logger, $settings) {
@@ -102,14 +103,14 @@ namespace dfm {
 		}
 		
 		function createFrontPage() {
-			$pdf = $this->createPDF();
+			$pdf = $this->createPDFObject();
 			$pdf->daiFrontpage(); // default frontpage layout
 			$path = $this->settings['tmp_path'] . '/' . md5(time()) . '.pdf';
 			$pdf->Output($path, 'F');
 			return $path;
 		}
 				
-		function createPDF() {
+		function createPDFObject() {
 
 			if (!defined('K_TCPDF_EXTERNAL_CONFIG')) {
 				define('K_TCPDF_EXTERNAL_CONFIG', true);
@@ -122,21 +123,102 @@ namespace dfm {
 			require_once('daipdf.class.php');
 			//function __construct($orientation='P', $unit='mm', $format='A4', $unicode=true, $encoding='UTF-8', $diskcache=false, $pdfa=false
 			
-			error_reporting(E_ALL & ~ E_DEPRECATED);
-			ini_set('display_errors', 'on');
-			
 			$pdf = new \daiPDF('P', 'mm', 'A4', true, 'UTF-8', false, false);
-
 			$pdf->logger = $this->logger;
 			$pdf->settings = $this->settings;
-			
 			$pdf->daiInit($this->lang, $this->metadata);
-			
 			return $pdf;
 		}
 		
+		/**
+		 * 
+		 * replaces the first page of the file $oldFile with $newFrontpage
+		 * - if $replace is set fo false, $newFrontpage just gets attached in the Beginning of $oldFile
+		 * 
+		 * @param <string> $oldFile - fullpath
+		 * @param <string> $newFrontpage - fullpath
+		 * @param <bool> $replace
+		 */
+		public function updateFrontpage($oldFile, $newFrontpage, $replace = true) {
+			$this->logger->log("update file: $oldFile with front matter $newFrontpage (replace: $replace)");
+			// @TODO to be implemented
+		}
+		
+		/**
+		 * updates a file with the current metadata set
+		 * @param <string> $file - fullpath
+		 */
+		public function updatePDFMetadata($file) {
+			$this->checkFile($file);
+			$this->logger->log("update updatePDFMetadata: $file ");
+			// @TODO to be implemented
+			return;
+			
+			$data = $this->data;
+		
+			foreach ($data->articles as $nr => $article) {
+		
+				$author	= str_replace('"', '', $this->_assembleAuthorlist($article));
+				$title 	= str_replace('"', '', $article->title->value->value);
+		
+				$shell = 'exiftool ' . $this->_pdfMetadataCommand($article) . ' ' . $article->filepath . " 2>&1";
+		
+				$this->log->debug($shell);
+		
+				$response = shell_exec($shell);
+		
+					
+				$this->log->debug($response);
+		
+				if (strpos($response, 'Warning:') !== false) {
+					$this->log->warning('exiftool warning:' . $response);
+				}
+		
+				if (strpos($response, 'Error:') !== false) {
+					throw new Exception('Error while trying to write pdt metadata:' . $response);
+				}
+		
+				if (strpos($response, 'exiftool: not found') !== false) {
+					throw new Exception('Error: exiftool missing: ' . $response);
+				}
+		
+		
+			}
+		
+		}
+		
+		/**
+		 * creates a string containing dai specific metadata, wich we write in in the dc:relation field, abusing it somehow
+		 * @param unknown $article
+		 */
+		private function _pdfMetadataCommand($article) {
+			$data = $this->data;
+			$metadata = array();
+			$metadata['url']		= str_replace('"', '', $article->url);
+			$metadata['pubId']		= str_replace('"', '', $article->urn);
+			$metadata['zenonId']	= (int) $article->zenonId;
+			$metadata['daiPubId']	= (int) $article->pubid;
+		
+			$return = array();
+			foreach ($metadata as $k => $v) {
+				$return[] = "-Relation=\"$k:$v\" ";
+			}
+		
+		
+			$journal = $this->getJournal();
+			$journal->createMetdata($article, $data->journal);
+			$this->log->debug(print_r($journal->metadata['journal_title'],1));
+					$return[] = "-Description=\"{$journal->metadata['journal_title']}; {$journal->metadata['issue_tag']};  {$journal->metadata['pages']}\"";
+		
+					$return[] = '-Title="' . $journal->metadata['article_title'] . '"';
+							$return[] = '-Author="' . $journal->metadata['article_author'] . '"';
+									$return[] = '-Creator="DAI OJS Importer"';
+		
+		
+									return implode(' ', $return);
+		}
+		
 		public function checkFile($file) {
-
 			if (!file_exists($file)) {
 				throw new Exception("File " . $file . ' does not exist!');
 			}

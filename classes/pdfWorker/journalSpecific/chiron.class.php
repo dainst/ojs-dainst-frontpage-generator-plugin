@@ -1,6 +1,6 @@
 <?php
-namespace dfm\journals {
-	class chiron extends \dfm\journal {
+namespace dfm\pdfWorkers {
+	class chiron extends \dfm\pdfWorker {
 		function setMetadata($data) {
 	
 			//error_reporting(E_ALL);
