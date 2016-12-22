@@ -16,7 +16,11 @@
 
 namespace dfm {
 	class journal {
-		public $settings = array();		// settings from settings file like paths and so
+		public $settings = array(
+			'tcpdf_path'		=> '',
+			'tmp_path'			=> '',
+			'files_path'		=> ''
+		);
 		
 		/**
 		 * a ste of data needed for the frontpage
@@ -47,17 +51,14 @@ namespace dfm {
 		
 		public $lang = array();
 		
-		private $_base_path = "../";
-		private $_journals_path = "../";
 		
 		public $logger;
 		
-		function __construct($logger, $settings, $base_path = "../") {
-			$this->_base_path = $base_path;
+		function __construct($logger, $settings) {
 			//include_once($this->_base_path  . 'settings.php');
 			$this->settings = $settings;
 			$this->logger = $logger;
-			$this->lang = json_decode(file_get_contents(realpath(__DIR__ . '/common.json')));
+			$this->lang = json_decode(file_get_contents($this->settings['files_path'] . '/common.json'));
 		}
 		
 		final function setDefaultMetadata($data) {			
@@ -101,34 +102,41 @@ namespace dfm {
 		}
 		
 		function createFrontPage() {
-			$pdf = $this->createPDF();		
+			$pdf = $this->createPDF();
 			$pdf->daiFrontpage(); // default frontpage layout
-			$path = $this->settings['tmp_path'] . '/' . md5($article->title->value->value) . '.pdf';
+			$path = $this->settings['tmp_path'] . '/' . md5(time()) . '.pdf';
 			$pdf->Output($path, 'F');
 			return $path;
 		}
-		
-		
+				
 		function createPDF() {
+
+			if (!defined('K_TCPDF_EXTERNAL_CONFIG')) {
+				define('K_TCPDF_EXTERNAL_CONFIG', true);
+			}
 			if (!defined('K_TCPDF_THROW_EXCEPTION_ERROR')) {
 				define('K_TCPDF_THROW_EXCEPTION_ERROR', true);
 			}
-			require_once('../tcpdf/tcpdf.php');
+			require_once($this->settings['tcpdf_path'] . '/tcpdf.php');
+			
 			require_once('daipdf.class.php');
-			$pdf = new daiPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+			//function __construct($orientation='P', $unit='mm', $format='A4', $unicode=true, $encoding='UTF-8', $diskcache=false, $pdfa=false
+			
+			error_reporting(E_ALL & ~ E_DEPRECATED);
+			ini_set('display_errors', 'on');
+			
+			$pdf = new \daiPDF('P', 'mm', 'A4', true, 'UTF-8', false, false);
+
 			$pdf->logger = $this->logger;
+			$pdf->settings = $this->settings;
 			
 			$pdf->daiInit($this->lang, $this->metadata);
 			
 			return $pdf;
 		}
 		
-
-		
 		public function checkFile($file) {
-			if (substr($file, 0, 1) != '/') { // relative path
-				$file = $this->settings['rep_path'] . '/' . $file;
-			}
+
 			if (!file_exists($file)) {
 				throw new Exception("File " . $file . ' does not exist!');
 			}

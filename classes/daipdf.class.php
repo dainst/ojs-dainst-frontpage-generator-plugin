@@ -13,6 +13,8 @@ class daiPDF extends TCPDF {
 	
 	public $logger;
 
+	public $settings; // paths!
+	
 	public function daiInit($lang, $metadata) {
 		$this->importMissingFonts();
 		
@@ -65,12 +67,8 @@ class daiPDF extends TCPDF {
 	
 	public function daiFrontpage() {
 	
-		$path = realpath(__DIR__);
-	
-		// image
-		//$this->Image("$path/artwork/dailogo.png", 114, 15, '', 23, 'PNG', '', 'B', false, 300, '', false, false, 0, false, false, false);
-		
-		$this->ImageSVG("$path/artwork/dailogo.svg", 114, 15, '', 23, '', true, 'B');
+		// image	
+		$this->ImageSVG("{$this->settings['files_path']}/dailogo.svg", 114, 15, '', 23, '', true, 'B');
 	
 		// url right to image
 		$this->daiFont('xs');
@@ -155,7 +153,6 @@ class daiPDF extends TCPDF {
 	 * @param unknown $file
 	 */
 	public function importMissingFonts() {
-		$path = realpath(__DIR__);
 	
 		$fonts = array(
 			"calibri",
@@ -164,8 +161,11 @@ class daiPDF extends TCPDF {
 		);
 	
 		foreach ($fonts as $font) {
-			if (!file_exists("$path/inc/TCPDF/fonts/$font.php")) {
-				if (!TCPDF_FONTS::addTTFfont("$path/artwork/$font.ttf", 'TrueTypeUnicode', 32)) {
+			if (!file_exists("{$this->settings['tcpdf_path']}/fonts/$font.php")) {
+				if (!is_writable("{$this->settings['tcpdf_path']}/fonts")) {
+					throw new \Exception("TCPDF fints directory not writable");
+				}
+				if (TCPDF_FONTS::addTTFfont("{$this->settings['files_path']}/$font.ttf", 'TrueTypeUnicode', 32) === false) {
 					$this->logger->warning("font $font not installed");
 				} else {
 					$this->logger->log("font $font successfull installed");

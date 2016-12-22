@@ -5,13 +5,18 @@ class frontpageCreator {
 	
 	public $log;
 	
-	function __construct($id, $type) {
-		$type = "journal"; // for testing
-		$id = 2;
-		
+	public $plugin;
+	
+	function __construct($plugin) {
+		$this->plugin = $plugin;
 		require_once("logger.class.php");
 		$this->log = new logger;
+	}
+	
+	function runFrontpageUpate($id, $type) {
 		
+		$type = "journal"; // for testing
+		$id = 2;
 		
 		try {
 			if ($type == "journal") {
@@ -134,10 +139,8 @@ class frontpageCreator {
 		$articleFile = $articleFileManager->getFile($galley->_data['fileId']);
 		$path = $articleFileManager->filesDir .  $articleFileManager->fileStageToPath($articleFile->getFileStage()) . '/' . $articleFile->getFileName();
 		
-		
 		// now that we have everything, we can create our front page		
 		$this->log->log('update file ' . $path . ' of article ' . $articleId . ' in journal ' . $journalAbb);
-	
 		
 		// get our own, frontpage creating object
 		require_once("journal.class.php");		
@@ -147,7 +150,16 @@ class frontpageCreator {
 		} else {
 			$class = "\\dfm\\journal";
 		}		
-		$journalController = new $class($this->log, array('tmp_path' => '/var/www/tmp'));
+		
+		$journalController = new $class(
+			$this->log, 
+			array(
+				'tmp_path'		=> '/var/www/tmp',
+				'tcpdf_path'	=> $this->plugin->pluginPath . '/tcpdf',
+				'files_path'	=> $this->plugin->pluginPath . '/classes/journals/files' // artwork files and stuff
+			)
+		);
+
 		$this->log->log('using controller ' . $class);
 		
 		// fill it with data
@@ -167,7 +179,7 @@ class frontpageCreator {
 			'year'				=> $issue->_data['year'],
 			'zenon_id'			=> '####'
 		));
-	
+		
 		echo "<hr><div><b>UPDATE ",$articleId,"</b><pre>";
 		//print_r();
 		print_r($journalController->metadata);
@@ -187,5 +199,5 @@ class frontpageCreator {
 	private function _noDoubleSpaces($string) {
 		return preg_replace( "#\s{2,}#", " ", $string);
 	}
-	
+
 }

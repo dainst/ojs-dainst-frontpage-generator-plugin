@@ -80,7 +80,7 @@ class dfm extends GenericPlugin {
 		return parent::getManagementVerbs($verbs);
 	}
 
-	/*
+	/**
 	 * Execute a management verb on this plugin
 	 * @param $verb string
 	 * @param $args array
@@ -129,10 +129,11 @@ class dfm extends GenericPlugin {
 	
 	
 	/* the function itself */ 
-	
 	function startUpdateFrontapges($id, $type) {
+		
 		require_once('classes/frontpageCreator.class.php');
-		$frontpageCreator = new frontpageCreator($id, $type);
+		$frontpageCreator = new frontpageCreator($this);
+		$frontpageCreator->runFrontpageUpate($id, $type);
 	}
 }
 ?>
