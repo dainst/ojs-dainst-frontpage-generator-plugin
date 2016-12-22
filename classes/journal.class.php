@@ -18,12 +18,19 @@ namespace dfm {
 	class journal {
 		public $settings = array();		// settings from settings file like paths and so
 		
+		/**
+		 * a ste of data needed for the frontpage
+		 * it's easier to work from this point on with this, not with OJS-Objects (also, this was created indiependend of the OJS first)
+		 * 
+		 */
 		public $metadata = array(
 			'article_author'	=> '###', 
 			'article_title'		=> '###',
 			'editor'			=> '###',
+			'issn'				=> '###',
 			'issue_tag'			=> '###',
 			'journal_title'		=> '###',
+			'journal_sub'		=> '###',
 			'journal_url'		=> '###',
 			'pages'				=> '###',
 			'pub_id'			=> '###',
@@ -33,7 +40,6 @@ namespace dfm {
 			'volume'			=> '###',
 			'year'				=> '###',
 			'zenon_id'			=> '###'
-			
 		);
 		
 		public $doCut 		= true;
@@ -48,25 +54,29 @@ namespace dfm {
 		
 		function __construct($logger, $settings, $base_path = "../") {
 			$this->_base_path = $base_path;
-			include_once($this->_base_path  . 'settings.php');
+			//include_once($this->_base_path  . 'settings.php');
 			$this->settings = $settings;
 			$this->logger = $logger;
-			$this->lang = json_decode(file_get_contents(realpath(__DIR__ . '/../journals/common.json')));
-			
+			$this->lang = json_decode(file_get_contents(realpath(__DIR__ . '/common.json')));
 		}
 		
-		function setDefaultMetadata($article, $issue) {
-			
-			$this->metadata['article_author']	= $this->assembleAuthorlist($article);
-			$this->metadata['article_title' ] 	= $article->title->value->value;		
-			$this->metadata['pages']			= "{$article->pages->value->realpage}–{$article->pages->value->endpage}";
-			$this->metadata['pub_id']			= $article->pubid;
-			$this->metadata['url']				= $article->url;
-			$this->metadata['urn']				= $article->urn;
-			$this->metadata['volume']			= $issue->volume->value->value;
-			$this->metadata['year']				= $issue->year->value->value;
-			$this->metadata['zenon_id']			= $article->zenonId;
-	
+		final function setDefaultMetadata($data) {			
+			foreach ($this->metadata as $key => $value) {
+				if (isset($data[$key])) {
+					$this->metadata[$key] = $data[$key];
+				}
+			}
+			if (($this->metadata['issue_tag'] == '###') and isset($this->metadata['volume']) and isset($this->metadata['year'])) {
+				$this->metadata['issue_tag']		= "{$this->metadata['volume']} • {$this->metadata['year']}";
+			}
+		}
+		
+		/**
+		 * to be overwritten by implementation
+		 * @param unknown $data
+		 */
+		function setMetadata($data) {
+			$this->metadata['issue_tag']		= "{$this->metadata['volume']} • {$this->metadata['year']}";	
 		}
 		
 		function checkMetadata() {
@@ -77,9 +87,9 @@ namespace dfm {
 			}
 		}
 		
-		function createMetdata($article, $issue) {
-			$this->setDefaultMetadata($article, $issue);
-			$this->setMetadata($article, $issue);
+		function createMetdata($data) {
+			$this->setDefaultMetadata($data);
+			$this->setMetadata($data);
 			$this->checkMetadata();
 		}
 		

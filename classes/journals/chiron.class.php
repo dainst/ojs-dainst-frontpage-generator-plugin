@@ -1,7 +1,7 @@
 <?php
-namespace dfm/journals {
+namespace dfm\journals {
 	class chiron extends \dfm\journal {
-		function setMetadata($article, $issue) {
+		function setMetadata($data) {
 	
 			//error_reporting(E_ALL);
 			//ini_set('display_errors', 1);

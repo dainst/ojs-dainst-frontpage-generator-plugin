@@ -20,7 +20,7 @@ class selectToReFreshForm extends Form {
 
 	function selectToReFreshForm(&$plugin, $journalId) {
 		$this->_plugin = $plugin;
-		$this->_journalId = $_journalId;
+		$this->_journalId = $journalId;
 		parent::Form($this->_plugin->getTemplatePath() . 'templates/selectToRefreshForm.tpl');
 	}
 	

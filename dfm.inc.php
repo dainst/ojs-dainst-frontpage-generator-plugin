@@ -97,8 +97,6 @@ class dfm extends GenericPlugin {
 		switch ($verb) {
 			case 'settings':
 				
-				
-				
 				$journal =& Request::getJournal();
 				$journalId = ($journal ? $journal->getId() : CONTEXT_ID_NONE);
 				$templateMgr =& TemplateManager::getManager();
