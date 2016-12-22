@@ -1,16 +1,16 @@
 <?php
 /**
  * 
+ * this class creates a pdf front page in the dainst style
  * 
- * STAND
-
- * 
- * 
- * 
+ * it is designed to work in different cntexts, so everything wich nis OJS code is kept away
  * 
  * @author Philipp Franck
  * 
  * abstract for different journal extensions
+ * 
+ * 
+ * usage:
  *
  */
 
@@ -72,13 +72,16 @@ namespace dfm {
 		}
 		
 		/**
-		 * to be overwritten by implementation
+		 * to be overwritten
 		 * @param unknown $data
 		 */
 		function setMetadata($data) {
-			$this->metadata['issue_tag']		= "{$this->metadata['volume']} • {$this->metadata['year']}";	
+			
 		}
 		
+		/**
+		 * checks if metdata is set, else raises an error
+		 */
 		function checkMetadata() {
 			foreach($this->metadata as $key => $value) {
 				if ($value == '###') {
@@ -87,14 +90,17 @@ namespace dfm {
 			}
 		}
 		
-		function createMetdata($data) {
+		/**
+		 * 
+		 * @param unknown $data
+		 */
+		function createMetadata($data) {
 			$this->setDefaultMetadata($data);
 			$this->setMetadata($data);
 			$this->checkMetadata();
 		}
 		
-		function createFrontPage($article, $issue) {
-			$this->createMetdata($article, $issue);
+		function createFrontPage() {
 			$pdf = $this->createPDF();		
 			$pdf->daiFrontpage(); // default frontpage layout
 			$path = $this->settings['tmp_path'] . '/' . md5($article->title->value->value) . '.pdf';
@@ -107,7 +113,7 @@ namespace dfm {
 			if (!defined('K_TCPDF_THROW_EXCEPTION_ERROR')) {
 				define('K_TCPDF_THROW_EXCEPTION_ERROR', true);
 			}
-			require_once('inc/TCPDF/tcpdf.php');
+			require_once('../tcpdf/tcpdf.php');
 			require_once('daipdf.class.php');
 			$pdf = new daiPDF('P', 'mm', 'A4', true, 'UTF-8', false);
 			$pdf->logger = $this->logger;
@@ -117,15 +123,7 @@ namespace dfm {
 			return $pdf;
 		}
 		
-		public function assembleAuthorlist($article) {
-			$author_list = [];
-			foreach ($article->author->value as $author) {
-				$author_list[] = "{$author->firstname} {$author->lastname}";
-			}
-			return implode(' – ', $author_list);
-		
-		}
-	
+
 		
 		public function checkFile($file) {
 			if (substr($file, 0, 1) != '/') { // relative path

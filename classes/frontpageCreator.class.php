@@ -132,48 +132,46 @@ class frontpageCreator {
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
 		$articleFile = $articleFileManager->getFile($galley->_data['fileId']);
-
-		// now that we have everything, we can create our front page		
-		
-		
-		echo "<hr><div><b>UPDATE ",$articleId,"</b><pre>";
-
-	
 		$path = $articleFileManager->filesDir .  $articleFileManager->fileStageToPath($articleFile->getFileStage()) . '/' . $articleFile->getFileName();
-		$this->log->log('updateing file ' . $path . ' of article ' . $articleId . ' in journal ' . $journalAbb);
-	
-		require_once("journal.class.php");
 		
+		
+		// now that we have everything, we can create our front page		
+		$this->log->log('update file ' . $path . ' of article ' . $articleId . ' in journal ' . $journalAbb);
+	
+		
+		// get our own, frontpage creating object
+		require_once("journal.class.php");		
 		if (stream_resolve_include_path("journals/{$journalAbb}.class.php")) {			
 			require_once("journals/{$journalAbb}.class.php");
 			$class = "\\dfm\\journals\\{$journalAbb}";		
 		} else {
 			$class = "\\dfm\\journal";
-		}
-		
+		}		
+		$journalController = new $class($this->log, array('tmp_path' => '/var/www/tmp'));
 		$this->log->log('using controller ' . $class);
 		
-		$journalController = new $class($this->log, array());
-		$journalController->createMetdata(array(
+		// fill it with data
+		$journalController->createMetadata(array(
 			'article_author'	=> $this->_noDoubleSpaces($article->getAuthorString(false, ' – ')),
 			'article_title'		=> $this->_getLocalized($article->_data['cleanTitle']),
 			'editor'			=> '<br>' . $this->_noLineBreaks($journalSettings['contactName'] . ' ' . $this->_getLocalized($journalSettings['contactAffiliation'])),
 			'issn'				=> isset($journalSettings['onlineIssn']) ? $journalSettings['onlineIssn'] : (isset($journalSettings['printIssn']) ?	$journalSettings['printIssn'] : '###'),
-			'issue_tag'			=> '###',
 			'journal_title'		=> $this->_getLocalized($journalSettings['title']), 
-			'journal_url'		=> '###',
+			'journal_url'		=> Config::getVar('general', 'base_url') . '/' . $journalAbb,
 			'pages'				=> $article->_data['pages'],
 			'pub_id'			=> $articleId,
 			'publisher'			=> $this->_noLineBreaks($journalSettings['publisherInstitution']  . ' ' . $this->_getLocalized($journalSettings['publisherNote'])),
-			'url'				=> '###',
+			'url'				=> Config::getVar('general', 'base_url') . '/' . $journalAbb . '/' . $articleId . '/' . $galley->getId(),
 			'urn'				=> isset($galley->_data['pub-id::other::urnDNB']) ? $galley->_data['pub-id::other::urnDNB'] : (isset($galley->_data['pub-id::other::urn']) ? $galley->_data['pub-id::other::urn'] : '###'), // take the URn created by the ojsde-dnburn pugin, if not present try the normla pkugins urn or set ###
 			'volume'			=> $issue->_data['volume'],
 			'year'				=> $issue->_data['year'],
-			'zenon_id'			=> '###'
+			'zenon_id'			=> '####'
 		));
 	
+		echo "<hr><div><b>UPDATE ",$articleId,"</b><pre>";
 		//print_r();
 		print_r($journalController->metadata);
+		$journalController->createFrontPage();
 		echo "</pre></div>";
 	}
 	
