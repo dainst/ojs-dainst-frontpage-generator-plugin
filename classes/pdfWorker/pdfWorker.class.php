@@ -105,11 +105,15 @@ namespace dfm {
 		function createFrontPage() {
 			$pdf = $this->createPDFObject();
 			$pdf->daiFrontpage(); // default frontpage layout
-			$path = $this->settings['tmp_path'] . '/' . md5(time()) . '.pdf';
+			$path = $this->getTmpFileName();
 			$pdf->Output($path, 'F');
 			return $path;
 		}
 				
+		function getTmpFileName() {
+			return $this->settings['tmp_path'] . '/' . md5(microtime() . rand()) . '.pdf';
+		}
+		
 		function createPDFObject() {
 
 			if (!defined('K_TCPDF_EXTERNAL_CONFIG')) {
@@ -138,10 +142,29 @@ namespace dfm {
 		 * @param <string> $oldFile - fullpath
 		 * @param <string> $newFrontpage - fullpath
 		 * @param <bool> $replace
+		 * 
+		 * @return <string> fullpath of file with new frontmatter
 		 */
 		public function updateFrontpage($oldFile, $newFrontpage, $replace = true) {
 			$this->logger->log("update file: $oldFile with front matter $newFrontpage (replace: $replace)");
-			// @TODO to be implemented
+			
+			$newFrontpage = escapeshellarg($newFrontpage);
+			$oldFile = escapeshellarg($oldFile);
+			$tmpFile = $this->getTmpFileName();
+			
+			$pages = $replace ? "2-end" : "";
+			
+			$shell = "pdftk A=$newFrontpage B=$oldFile cat A B$pages output $tmpFile 2>&1"; // in production: $tmpFile == $oldFile
+						
+			$this->logger->debug($shell);
+			
+			$cut = shell_exec($shell);
+			
+			if($cut != '') {
+				throw new \Exception($cut);
+			}
+			
+			return $tmpFile;
 		}
 		
 		/**
@@ -150,39 +173,26 @@ namespace dfm {
 		 */
 		public function updatePDFMetadata($file) {
 			$this->checkFile($file);
-			$this->logger->log("update updatePDFMetadata: $file ");
-			// @TODO to be implemented
-			return;
-			
-			$data = $this->data;
+			$this->logger->log("update updatePDFMetadata: $file ");			
 		
-			foreach ($data->articles as $nr => $article) {
-		
-				$author	= str_replace('"', '', $this->_assembleAuthorlist($article));
-				$title 	= str_replace('"', '', $article->title->value->value);
-		
-				$shell = 'exiftool ' . $this->_pdfMetadataCommand($article) . ' ' . $article->filepath . " 2>&1";
-		
-				$this->log->debug($shell);
-		
-				$response = shell_exec($shell);
-		
-					
-				$this->log->debug($response);
-		
-				if (strpos($response, 'Warning:') !== false) {
-					$this->log->warning('exiftool warning:' . $response);
-				}
-		
-				if (strpos($response, 'Error:') !== false) {
-					throw new Exception('Error while trying to write pdt metadata:' . $response);
-				}
-		
-				if (strpos($response, 'exiftool: not found') !== false) {
-					throw new Exception('Error: exiftool missing: ' . $response);
-				}
-		
-		
+			$shell = 'exiftool ' . $this->_pdfMetadataCommand() . ' ' . escapeshellarg($file) . " 2>&1";
+	
+			$this->logger->debug($shell);
+	
+			$response = shell_exec($shell);
+				
+			$this->logger->debug($response);
+	
+			if (strpos($response, 'Warning:') !== false) {
+				$this->log->warning('exiftool warning:' . $response);
+			}
+	
+			if (strpos($response, 'Error:') !== false) {
+				throw new Exception('Error while trying to write pdf metadata:' . $response);
+			}
+	
+			if (strpos($response, 'exiftool: not found') !== false) {
+				throw new Exception('Error: exiftool missing: ' . $response);
 			}
 		
 		}
@@ -191,31 +201,25 @@ namespace dfm {
 		 * creates a string containing dai specific metadata, wich we write in in the dc:relation field, abusing it somehow
 		 * @param unknown $article
 		 */
-		private function _pdfMetadataCommand($article) {
-			$data = $this->data;
-			$metadata = array();
-			$metadata['url']		= str_replace('"', '', $article->url);
-			$metadata['pubId']		= str_replace('"', '', $article->urn);
-			$metadata['zenonId']	= (int) $article->zenonId;
-			$metadata['daiPubId']	= (int) $article->pubid;
+		private function _pdfMetadataCommand() {
+			
+			$metadata = $this->metadata;
+			
+			$writeRelations = array('zenon_id', 'url', 'urn', 'pub_id');
 		
 			$return = array();
-			foreach ($metadata as $k => $v) {
-				$return[] = "-Relation=\"$k:$v\" ";
+			foreach ($writeRelations as $r) {
+				if (isset($metadata[$r]) and ($metadata[$r] !== "###")) {
+					$return[] = "-Relation=" . escapeshellarg("$r:{$metadata[$r]}");
+				}
 			}
+
+			$return[] = "-Description=" . escapeshellarg("{$metadata['journal_title']}; {$metadata['issue_tag']}; {$metadata['pages']}");
+			$return[] = '-Title=' . escapeshellarg($metadata['article_title']);
+			$return[] = '-Author=' . escapeshellarg($metadata['article_author']);
+			$return[] = '-Creator="DAINST OJS Frontmatter Plugin"';
 		
-		
-			$journal = $this->getJournal();
-			$journal->createMetdata($article, $data->journal);
-			$this->log->debug(print_r($journal->metadata['journal_title'],1));
-					$return[] = "-Description=\"{$journal->metadata['journal_title']}; {$journal->metadata['issue_tag']};  {$journal->metadata['pages']}\"";
-		
-					$return[] = '-Title="' . $journal->metadata['article_title'] . '"';
-							$return[] = '-Author="' . $journal->metadata['article_author'] . '"';
-									$return[] = '-Creator="DAI OJS Importer"';
-		
-		
-									return implode(' ', $return);
+			return implode(' ', $return);
 		}
 		
 		public function checkFile($file) {

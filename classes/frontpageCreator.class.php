@@ -133,8 +133,8 @@ class frontpageCreator {
 		$newFrontmatterFile = $journalController->createFrontPage();
 		$fileToUpdate = $journalController->fileToUpdate;
 				
-		$journalController->updateFrontpage($newFrontmatterFile, $fileToUpdate);
-		$journalController->updatePDFMetadata($fileToUpdate);		
+		$tmpFile = $journalController->updateFrontpage($fileToUpdate, $newFrontmatterFile);
+		$journalController->updatePDFMetadata($tmpFile);		// because testing... $tmpFile instead of $fileToUpdate
 
 		
 		echo "</pre></div>";
