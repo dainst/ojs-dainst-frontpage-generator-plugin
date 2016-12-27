@@ -3,9 +3,6 @@ namespace dfm\pdfWorkers {
 	class chiron extends \dfm\pdfWorker {
 		function setMetadata($data) {
 	
-			//error_reporting(E_ALL);
-			//ini_set('display_errors', 1);
-			
 			$this->metadata['journal_title'] 	= 'Chiron';
 			$this->metadata['journal_sub'] 		= 'Mitteilungen der Kommission für alte Geschichte und Epigraphik des Deutschen Archäologischen Instituts';
 			$this->metadata['editor'] 			= "Kommission für Alte Geschichte und Epigraphik des DAI, Amalienstr. 73b, 80799 München";

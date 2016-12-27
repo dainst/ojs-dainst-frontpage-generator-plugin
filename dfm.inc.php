@@ -28,6 +28,9 @@
 import('lib.pkp.classes.plugins.GenericPlugin');
 
 class dfm extends GenericPlugin {
+	
+	public $user; // will be set by form
+	
 	function register($category, $path) {
 		if (parent::register($category, $path)) {
 			if ($this->getEnabled()) {

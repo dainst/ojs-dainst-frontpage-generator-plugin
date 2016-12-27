@@ -193,7 +193,8 @@ namespace dfm {
 			if (strpos($response, 'exiftool: not found') !== false) {
 				throw new Exception('Error: exiftool missing: ' . $response);
 			}
-		
+			
+			return $file;
 		}
 		
 		/**
@@ -226,6 +227,10 @@ namespace dfm {
 				throw new Exception("File " . $file . ' does not exist!');
 			}
 			return true;
+		}
+		
+		public function cleanTmpFolder() {
+			array_map('unlink', glob($this->settings['tmp_path'] . '/*'));
 		}
 		
 	}

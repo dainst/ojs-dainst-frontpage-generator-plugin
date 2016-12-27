@@ -7,6 +7,10 @@ class frontpageCreator {
 	
 	public $plugin;
 	
+	public $tmp_path = '/var/www/tmp'; // @ TODO
+	
+	public $user;
+	
 	function __construct($plugin) {
 		$this->plugin = $plugin;
 		require_once("pdfWorker/logger.class.php");
@@ -22,6 +26,9 @@ class frontpageCreator {
 		$id = 2;
 		
 		try {
+			
+			$this->cleanTmpFolder();
+			
 			if ($type == "journal") {
 				$this->getJournalGalleys($id);
 			} elseif ($type == "article") {
@@ -31,7 +38,7 @@ class frontpageCreator {
 			}
 			$this->processList();
 			
-			// @ TODO to clean up the mess in tmp folder
+			
 	
 		} catch (Exception $e) {
 			echo "<div style='background:red'>ERROR:> " . $e->getMessage() . "</div>";
@@ -132,21 +139,52 @@ class frontpageCreator {
 		echo "<hr><div><b>UPDATE ",$galleyItem['articleId'],"</b><pre>";
 		
 		$journalController = $this->getJournalController($galleyItem);
-		$newFrontmatterFile = $journalController->createFrontPage();
-		//$fileToUpdate = $journalController->fileToUpdate;
-				
-		//$tmpFile = $journalController->updateFrontpage($fileToUpdate, $newFrontmatterFile);
-		//$journalController->updatePDFMetadata($tmpFile);		// because testing... $tmpFile instead of $fileToUpdate
-
-		// now that everythings seems to have worked (otherwise we would not be here but in an exception handler hopefully),
-		// we can cope back the shiny and overwrite the old one...
 		
-		//@TODO write file back
+		$newFrontmatterFile = $journalController->createFrontPage();
+			
+		$tmpFile = $journalController->updateFrontpage($journalController->fileToUpdate, $newFrontmatterFile);
+		$tmpFile = $journalController->updatePDFMetadata($tmpFile);		// because testing... $tmpFile instead of $fileToUpdate
+		
+		// now that everythings seems to have worked (otherwise we would not be here but in an exception handler hopefully),
+		// we can copy back the shiny and overwrite the old one...
+		$this->replaceFile($galleyItem, $tmpFile);
+		
 		
 		
 		echo "</pre></div>";
 	}
 	
+	
+	function replaceFile($galleyItem, $newFile) {
+		
+		// Do the Object Limbo, Baby!
+		$oldGalley = $galleyItem['galley'];
+		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
+		$galley = new ArticleGalley();
+		$galley->setLabel('PDF');
+		$galley->setArticleId($galleyItem['articleId']);		
+		$galley->setLocale($oldGalley->getLocale());		
+		import('classes.file.ArticleFileManager');
+		$articleFileManager = new ArticleFileManager($galleyItem['articleId']);
+		$fileId = $articleFileManager->copyPublicFile($newFile, 'application/pdf');
+		$galley->setFileId($fileId);
+		$galleyDao->insertGalley($galley);
+		$galleyDao->deleteGalley($oldGalley);
+		$articleDao =& DAORegistry::getDAO('ArticleDAO');
+		import('classes.article.log.ArticleLog');
+		$article = $articleDao->getArticle($galleyItem['articleId']);
+		ArticleLog::logEventHeadless(
+			$journal, 
+			0, // @TODO insert correct user id!
+			$article,
+			ARTICLE_LOG_TYPE_DEFAULT,
+			'plugins.generic.dainstFrontmatter.updated',
+			array(
+				'userName' => 'Der Lustige user"',  // @TODO insert correct user id!
+				'articleId' => $article->getId()
+			)
+		);
+	}
 
 		
 	
@@ -160,7 +198,7 @@ class frontpageCreator {
 	 */
 	function getJournalController($galleyItem) {
 
-		// do the OJS object madness (wich clearly emerged from a poor java-bloated mind)
+		// do the OJS object madness (wich most likely emerged from a poor java-bloated mind)
 		$articleId = $galleyItem['articleId'];
 		$galley = $galleyItem['galley'];
 		$journal = $galleyItem['journal'];
@@ -189,7 +227,7 @@ class frontpageCreator {
 		$journalController = new $class(
 			$this->log,
 			array(
-				'tmp_path'		=> '/var/www/tmp',
+				'tmp_path'		=> $this->tmp_path,
 				'tcpdf_path'	=> $this->plugin->pluginPath . '/tcpdf',
 				'files_path'	=> $this->plugin->pluginPath . '/classes/pdfWorker/files' // artwork files and stuff
 			)
@@ -226,6 +264,10 @@ class frontpageCreator {
 	}
 
 
+	
+	public function cleanTmpFolder() {
+		array_map('unlink', glob($this->tmp_path . '/*'));
+	}
 	
 	private function _noLineBreaks($string) {
 		return preg_replace( "/\r|\n/", " ", $string);

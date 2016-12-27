@@ -24,17 +24,16 @@ class selectToReFreshForm extends Form {
 		parent::Form($this->_plugin->getTemplatePath() . 'templates/selectToRefreshForm.tpl');
 	}
 	
-	function display($request = null, $template = null) {	
+	function display($request = null, $template = null) {
+		$this->_plugin->user = $request->getUser();
+		var_dump($this->_plugin->user);
 		return parent::display($request, $template);
 	}
 	
 
 
 	function execute() {
-
-		var_dump($this->_data);
 		return  $this->_plugin->startUpdateFrontapges($this->getData('id'), $this->getData('type'));	
-
 	}
 	
 	function readInputData() {
