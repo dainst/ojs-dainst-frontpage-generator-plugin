@@ -19,6 +19,9 @@ namespace dfm\pdfWorkers {
 				$this->metadata['publisher'] 	= "Verlag C. H. Beck, München";
 			}
 		}
+		
+		public $smallMode = true;
+		
 	}
 }
 ?>

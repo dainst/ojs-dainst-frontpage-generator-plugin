@@ -15,39 +15,19 @@ class daiPDF extends TCPDF {
 
 	public $settings; // paths!
 	
+	public $smallMode;
+	
 	public function daiInit($lang, $metadata) {
 		$this->importMissingFonts();
 		
 		$this->lang = $lang;
 		$this->metadata = $metadata;
-		/*
-		// set document information
-		$this->SetCreator("DAI OJS Uploader");
-		$this->SetAuthor($this->metadata['article_author']);
-		$this->SetTitle($this->metadata['article_title']);
-		//$this->SetSubject('TCPDF Tutorial');
-		//$this->SetKeywords('TCPDF, PDF, example, test, guide');
-		
-		// set additional DAI specific metadata
-		$xmp  = '<dai xmlns:dai="xml.dainst.org">';
-		$xmp .= "\n\t";
-		$xmp .= (isset($this->metadata['pub_id'])) ?  '<dai:pubid>' . $this->metadata['pub_id'] . '</dai:pubid>' : '';
-		$xmp .= "\n\t";
-		$xmp .= (isset($this->metadata['zenon_id'])) ?  '<dai:zenonid>' . $this->metadata['zenon_id'] . '</dai:zenonid>' : '';
-		$xmp .= "\n\t";
-		$xmp .= (isset($this->metadata['urn'])) ?  '<dai:urn>' . $this->metadata['urn'] . '</dai:urn>' : '';
-		$xmp .= "\n\t";
-		$xmp .= (isset($this->metadata['url'])) ?  '<dai:url>' . $this->metadata['url'] . '</dai:url>' : '';
-		$xmp .= "\n";
-		$xmp .= '</dai>';		
-		$this->setExtraXMP($xmp);*/
 		
 		// set monosprace font
 		$this->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
 
 		// set margins // $left, $top, $right
-		
-		$this->SetMargins(20, 15, 19);
+		$this->SetMargins(20 * $this->unitScale, 15 * $this->unitScale, 19 * $this->unitScale);
 
 		// set auto page breaks
 		$this->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
@@ -59,75 +39,83 @@ class daiPDF extends TCPDF {
 		$this->setFontSubsetting(true);
 		
 		// kill paddings
-		$this->setCellPaddings(0,0,0,0);
+		$this->setCellPaddings(0, 0, 0, 0);
 
 		// Add a page
 		$this->AddPage();
 	}
 	
 	public function daiFrontpage() {
-	
-		// image	
-		$this->ImageSVG("{$this->settings['files_path']}/dailogo.svg", 114, 15, '', 23, '', true, 'B');
+		
+		// get unirScale
+		$k = $this->unitScale;
+		
+		
+		$this->ImageSVG(
+			"{$this->settings['files_path']}/dailogo.svg" /*$file*/, 
+			$this->smallMode ? 96.2 : 114 /*$x*/, 
+			15 * $k /*$y*/, 
+			'' /*$w*/, 
+			23 * $k /*$h*/, 
+			'' /*$link*/, 
+			'B' /*$align*/
+		);
 	
 		// url right to image
 		$this->daiFont('xs');
-		$this->SetXY(0,0.1);
-		$this->Cell(0, 38,'https://publications.dainst.org', 0, 1,'R', false, 'https://publications.dainst.org ', 0, false, 'T', 'B'); //, 'T'
+		$this->SetXY(0, 0.1 * $k);
+		$this->Cell(0 * $k, 38 * $k,'https://publications.dainst.org', 0, 1,'R', false, 'https://publications.dainst.org ', 0, false, 'T', 'B'); //, 'T'
 	
 		// first grey line
 		$this->SetLineStyle(array('width' => 0.1 / $this->k, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(128, 130, 133)));
-		$this->SetXY(115, $this->GetY() + 2.7);
-		$this->Cell(75.7, 0, '', 'T', 0, 'C');
+		$this->SetXY($this->smallMode ? 97 : 115.5, $this->GetY() + 2.7 * $k, true);
+		$this->Cell($this->smallMode ? 41 : 75, 0, '', 'T', 0, 'L');
 	
 		// iDAI.publications below
 		//$this->SetXY(107, $this->GetY() + 2.7);
 		$this->daiPrint('<span style="color: rgb(0, 68, 148)">i</span>DAI.publications', 'h1', array(
-				'x' => 103,
-				'y' => $this->GetY() + 1,
-				'w' => 87.7,
-				'align' => 'R'
+			'y' => $this->GetY() + 1 * $k,
+			'align' => 'R'
 		));
 	
 		// second grey line
 		$this->SetLineStyle(array('width' => 0.1 / $this->k, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(128, 130, 133)));
-		$this->SetXY(115, $this->GetY() - 1);
-		$this->Cell(75.7, 0, '', 'T', 0, 'C');
+		$this->SetXY($this->smallMode ? 97 : 115.5, $this->GetY() - 1 * $k);
+		$this->Cell($this->smallMode ? 41 : 75, 0, '', 'T', 0, 'C');
 	
 		// underline text
 		$this->daiPrint($this->lang->electronic_publication->de, "h2", array(
-				'x'	=> 115.3,
-				'y' => $this->GetY() + 2.7,
-				'w' => 74.7,
-				'align' => 'L'
+			'x'	=> 93.3,
+			'y' => $this->GetY() + 2.7 * $k,
+			'align' => 'R'
 		));
 	
 		// Sonderdruck
-		$this->SetXY(20, $this->GetY() + 19);
-		$this->daiPrintInfo('digital_offprint', 1.5);
+		$this->SetXY(20 * $k, $this->GetY() + 19 * $k);
+		$this->daiPrintInfo('digital_offprint', 1.5 * $k);
 	
 	
 		// author(s), title
-		$this->SetXY(20, $this->GetY() + 3.3);
+		$this->SetXY(20 * $k, $this->GetY() + 3.3 * $k);
 		$this->daiPrint($this->metadata['article_author'], '2');
 		$this->daiPrint($this->metadata['article_title'], '3');
 	
 		// aus
-		$this->SetXY(20, $this->GetY() + 26);
+		$this->SetXY(20 * $k, $this->GetY() + ($this->smallMode ? 10 : 26));
 		$this->daiPrintInfo('from', 1.5);
 	
 		// journal
-		$this->SetXY(20, $this->GetY() + 3.3);
+		$this->SetXY(20 * $k, $this->GetY() + 3.3 * $k);
 		$this->daiPrint($this->metadata['journal_title'], '3');
 		$this->daiPrint($this->metadata['journal_sub'], '2');
 	
 		// page
-		$this->SetXY(20, $this->GetY() + 6.6);
+		$this->SetXY(20 * $k, $this->GetY() + 6.6 * $k);
 		$this->daiPrintInfo('issue_tag', 1.5);
 		$this->daiPrintInfo('pages', 1.5);
 	
 		// aus
-		$this->SetXY(20, $this->GetY() + 28);
+		$this->SetXY(20 * $k, $this->GetY() + ($this->smallMode ? 11 : 28));
 		$this->daiPrint('<a style="color:black;text-decoration:none" href="' . $this->metadata['url'] . '">' . $this->metadata['url'] . '</a><b style="color:rgb(128,130,133)"> / ' . $this->metadata['urn'] . '</b>');
 		$this->daiPrintInfo('editor');
 		$this->daiPrintInfo('journal_url');
@@ -136,13 +124,13 @@ class daiPDF extends TCPDF {
 		$this->daiPrintInfo('publisher');
 	
 		// (c)
-		$this->SetXY(20, $this->GetY() + 6.6);
+		$this->SetXY(20 * $k, $this->GetY() + 6.6 * $k);
 		$this->daiPrint("<b style=\"font-family:calibrib\">©" . date('Y') . '</span> ' . $this->lang->copyright->de);
 	
 		// terms
-		$this->SetXY(20, $this->GetY() + 3.3);
+		$this->SetXY(20 * $k, $this->GetY() + 3.3 * $k);
 		$this->daiPrint($this->lang->terms->de);
-		$this->SetXY(20, $this->GetY() + 3.3);
+		$this->SetXY(20 * $k, $this->GetY() + 3.3 * $k);
 		$this->daiPrint('<span style="color:rgb(128,130,133)">' . $this->lang->terms->en . '</span>');
 
 	}
@@ -196,26 +184,23 @@ class daiPDF extends TCPDF {
 	
 		$this->daiFont($font);
 	
-		//$html = '<p style="text-align:justify">' . $html . '</p>';
-	
-	
 		$debug = 0;
 	
 		if (!count($cell)) {
 			$this->writeHTML($html, true, 0, true, true);
 		} else {
 			$this->writeHTMLCell(
-					isset($cell['w']) ? $cell['w'] : '',
-					isset($cell['h']) ? $cell['h'] : '',
-					isset($cell['x']) ? $cell['x'] : '',
-					isset($cell['y']) ? $cell['y'] : '',
-					$html,
-					$debug, /* border */
-					1, /* ln */
-					false, /* fill */
-					true, /* reseth */
-					isset($cell['align']) ? $cell['align'] : '',
-					true /* autopadding */
+				isset($cell['w']) ? $cell['w'] : '',
+				isset($cell['h']) ? $cell['h'] : '',
+				isset($cell['x']) ? $cell['x'] : '',
+				isset($cell['y']) ? $cell['y'] : '',
+				$html,
+				$debug, /* border */
+				1, /* ln */
+				false, /* fill */
+				true, /* reseth */
+				isset($cell['align']) ? $cell['align'] : '',
+				true /* autopadding */
 			);
 		}
 	
@@ -244,6 +229,8 @@ class daiPDF extends TCPDF {
 	
 		// reset
 		$this->setFontSpacing(0);
+		
+		$f = $this->unitScale;
 	
 		switch($font) {
 				
@@ -269,18 +256,32 @@ class daiPDF extends TCPDF {
 					
 			case 'h1':
 				$this->setFontSpacing(0.5);
-				$this->SetFont('calibril', '', 30, '', true);
+				$this->SetFont('calibril', '', 30 * $f, '', true);
 				break;
 	
 			case 'h2':
 				$this->setFontSpacing(0.3);
-				$this->SetFont('calibril', '', 9, '', true);
+				$this->SetFont('calibril', '', 9 * $f, '', true);
 				break;
 		}
 	
 	}
 	
+
+	public function __construct($smallmode = false) {
 	
+		$this->unitScale = 1;
+		$format = 'A4';
+		if ($smallmode == true) {
+			$this->unitScale = 0.5;
+			$format = 'A5';
+			$this->smallMode = $smallmode;
+		}
+		
+
+		parent::__construct('P', 'mm', $format, true, 'UTF-8', false, false);
+	}
+
 	
 	public function Header() {}
 	public function Footer() {}

@@ -23,7 +23,7 @@ namespace dfm {
 		);
 		
 		/**
-		 * a ste of data needed for the frontpage
+		 * a set of data needed for the frontpage
 		 * it's easier to work from this point on with this, not with OJS-Objects (also, this was created indiependend of the OJS first)
 		 * 
 		 */
@@ -48,8 +48,7 @@ namespace dfm {
 		);
 		// '###' -> means missing, will be printed and warning, '' means unset, will not be printed
 		
-		public $doCut 		= true;
-		public $doImport 	= true;
+		public $smallMode = false; // false: A4 Formatj, true: A5 Format
 		
 		public $lang = array();
 				
@@ -126,8 +125,8 @@ namespace dfm {
 			
 			require_once('daipdf.class.php');
 			//function __construct($orientation='P', $unit='mm', $format='A4', $unicode=true, $encoding='UTF-8', $diskcache=false, $pdfa=false
-			
-			$pdf = new \daiPDF('P', 'mm', 'A4', true, 'UTF-8', false, false);
+			//array(160, 240)
+			$pdf = new \daiPDF($this->smallMode);
 			$pdf->logger = $this->logger;
 			$pdf->settings = $this->settings;
 			$pdf->daiInit($this->lang, $this->metadata);

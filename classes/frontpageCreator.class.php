@@ -30,6 +30,8 @@ class frontpageCreator {
 				$this->getGalley($id);
 			}
 			$this->processList();
+			
+			// @ TODO to clean up the mess in tmp folder
 	
 		} catch (Exception $e) {
 			echo "<div style='background:red'>ERROR:> " . $e->getMessage() . "</div>";
@@ -131,11 +133,16 @@ class frontpageCreator {
 		
 		$journalController = $this->getJournalController($galleyItem);
 		$newFrontmatterFile = $journalController->createFrontPage();
-		$fileToUpdate = $journalController->fileToUpdate;
+		//$fileToUpdate = $journalController->fileToUpdate;
 				
-		$tmpFile = $journalController->updateFrontpage($fileToUpdate, $newFrontmatterFile);
-		$journalController->updatePDFMetadata($tmpFile);		// because testing... $tmpFile instead of $fileToUpdate
+		//$tmpFile = $journalController->updateFrontpage($fileToUpdate, $newFrontmatterFile);
+		//$journalController->updatePDFMetadata($tmpFile);		// because testing... $tmpFile instead of $fileToUpdate
 
+		// now that everythings seems to have worked (otherwise we would not be here but in an exception handler hopefully),
+		// we can cope back the shiny and overwrite the old one...
+		
+		//@TODO write file back
+		
 		
 		echo "</pre></div>";
 	}
