@@ -1,7 +1,7 @@
 <?php
 class frontpageCreator {
 		
-	public $galleysToUpdate = []; // format: {'galley': <ArticleGalley>, 'articleId': <int>, 'journalCode': <string>}
+	public $galleysToUpdate = []; // format: {'galley': <ArticleGalley>, 'article': <Article>, 'journal': <Journal>}
 	
 	public $log;
 	
@@ -14,15 +14,16 @@ class frontpageCreator {
 	function __construct($plugin) {
 		$this->plugin = $plugin;
 		require_once("pdfWorker/logger.class.php");
-		$this->log = new logger();
+		$this->log = new \sometools\logger();
 		/*
 		error_reporting(E_ALL & ~ E_DEPRECATED);
 		ini_set('display_errors', 'on');//*/
 	}
 	
+	
 	function runFrontpageUpate($id, $type) {
 		
-		$type = "journal"; // for testing
+		$type = "journal"; // @TODO insert real data for testing
 		$id = 2;
 		
 		try {
@@ -37,55 +38,66 @@ class frontpageCreator {
 				$this->getGalley($id);
 			}
 			$this->processList();
-			
-			
 	
 		} catch (Exception $e) {
-			echo "<div style='background:red'>ERROR:> " . $e->getMessage() . "</div>";
+			echo "<div class='alert alert-danger'>ERROR: " . $e->getMessage() . "</div>";
 		}
-		echo "<hr><b>Warnings</b>";
-		foreach ($this->log->warnings as $msg) {
-			echo "<div class='alert-warning'><pre>$msg</pre></div><br>";
-		}
-		echo "<hr>";
-		foreach ($this->log->log as $msg) {
-			echo "<div class=''>$msg</div>";
-		}
+		
+		$this->log->dumpLog();
 	}
 	
 
-	
-	function registerGalleys($galleys, $articleId, $journal) {
+	/**
+	 * collect all the OJS object we need later to make front matter and stuff
+	 * don't worry. being a messy is nothign crucial nowerdays and also we have pills and some gargabe collection
+	 * 
+	 * @param <ArticleGalley|array:ArticleGalley> $galleys
+	 * @param <Article|integer> $article or $article-id
+	 * @param unknown $journal
+	 */
+	function registerGalleys($galleys, $article, $journal) {
+
 		if (!is_array($galleys)) {
 			$galleys = array($galleys);
 		}
 	
+		$articleDao =& DAORegistry::getDAO('ArticleDAO');
+		
 		foreach ($galleys as $galley) {
-				
+
+			if (!$journal or (get_class($journal) != "Journal")) {
+				$this->log->warning("not journal given, but a " . get_class($journal));
+				continue;
+			}
+			
 			if (!$galley or (get_class($galley) != "ArticleGalley")) {
 				$this->log->warning("galley skipped, no galley: " . print_r($galley,1));
 				continue;
 			}
 	
 			if (!$galley->isPdfGalley()) {
-				$this->warning("galley skipped, no pdf galley");
+				$this->log->warning("galley skipped, no pdf galley");
 				continue;
 			}
 				
 			if ($galley->_data['fileStage'] != 7) {
-				$this->warning("galley skipped, not public");
+				$this->log->warning("galley skipped, not public");
 				continue;
 			}
 			
-			if (!$journal or (get_class($journal) != "Journal")) {
-				$this->warning("not journal given, but a " . get_class($journal));
+			if (is_numeric($article)) {
+				$article = $articleDao->getArticle($article);
+			}
+			
+			if (!article or (get_class($article) != 'Article')) {
+				$this->log->warning("galley skipped, article not found");
 				continue;
 			}
 				
 			$this->galleysToUpdate[] = array(
-				'galley' => $galley,
-				'articleId' => $articleId,
-				'journal' => $journal
+				'galley'	=> $galley,
+				'article'	=> $article,
+				'journal'	=> $journal
 			);
 		}
 	}
@@ -104,6 +116,8 @@ class frontpageCreator {
 		if (!$journal) {
 			// @TODO how get journal
 		}
+		
+		$galleyDao->getGalleysByArticle(1);
 		
 		$this->registerGalleys($galleyDao->getGalleysByArticle($id), $id, $journal);
 	}
@@ -134,24 +148,27 @@ class frontpageCreator {
 	}
 	
 	function processItem($galleyItem) {
-		$this->log->log('update galley of article ' . $galleyItem['articleId']);
-			
-		echo "<hr><div><b>UPDATE ",$galleyItem['articleId'],"</b><pre>";
+		$logToken = &$this->log->log('update galley "' . $galleyItem['galley']->getLabel() . '" of article "' . $galleyItem['article']->getArticleTitle() . '"');
+
+		// get journalController
+		$journalController = $this->getJournalController($galleyItem);	
 		
-		$journalController = $this->getJournalController($galleyItem);
-		
-		$newFrontmatterFile = $journalController->createFrontPage();
-			
+		// create new front matter
+		$newFrontmatterFile = $journalController->createFrontPage();	
+
+		// attach frontpage to file
 		$tmpFile = $journalController->updateFrontpage($journalController->fileToUpdate, $newFrontmatterFile);
-		$tmpFile = $journalController->updatePDFMetadata($tmpFile);		// because testing... $tmpFile instead of $fileToUpdate
+		
+		// update pdf metadata
+		$tmpFile = $journalController->updatePDFMetadata($tmpFile);
 		
 		// now that everythings seems to have worked (otherwise we would not be here but in an exception handler hopefully),
 		// we can copy back the shiny and overwrite the old one...
 		$this->replaceFile($galleyItem, $tmpFile);
-		
-		
-		
-		echo "</pre></div>";
+
+		// log that marvellous success!
+		$logToken->text .= ' ... success!';
+		$logToken->type = 'success';
 	}
 	
 	
@@ -165,25 +182,29 @@ class frontpageCreator {
 		$galley->setArticleId($galleyItem['articleId']);		
 		$galley->setLocale($oldGalley->getLocale());		
 		import('classes.file.ArticleFileManager');
-		$articleFileManager = new ArticleFileManager($galleyItem['articleId']);
+		$articleFileManager = new ArticleFileManager($galleyItem['article']->getId());
 		$fileId = $articleFileManager->copyPublicFile($newFile, 'application/pdf');
 		$galley->setFileId($fileId);
 		$galleyDao->insertGalley($galley);
 		$galleyDao->deleteGalley($oldGalley);
-		$articleDao =& DAORegistry::getDAO('ArticleDAO');
+
 		import('classes.article.log.ArticleLog');
-		$article = $articleDao->getArticle($galleyItem['articleId']);
 		ArticleLog::logEventHeadless(
 			$journal, 
 			0, // @TODO insert correct user id!
-			$article,
+			$galleyItem['article'],
 			ARTICLE_LOG_TYPE_DEFAULT,
 			'plugins.generic.dainstFrontmatter.updated',
 			array(
 				'userName' => 'Der Lustige user"',  // @TODO insert correct user id!
-				'articleId' => $article->getId()
+				'articleId' => $galleyItem['article']->getId()
 			)
 		);
+		// NUR DASS ES SO NICHT GEHT! DA KENNT MAN JA WIEDER DIE URN NICHT IM VORFELD...
+		// wir müssen sie selber generieren, das sollte doch gehen...
+		// a) doch einfach den file ersetzen, keine neue Galley anlegen
+		//     * sollte man die galley nicht archivieren können, kann man das ruhig machen 
+		// b) erst die galley erstellen, URN erzeugen, dann file erzeugen und attachen... ob das geht?
 	}
 
 		
@@ -199,14 +220,13 @@ class frontpageCreator {
 	function getJournalController($galleyItem) {
 
 		// do the OJS object madness (wich most likely emerged from a poor java-bloated mind)
-		$articleId = $galleyItem['articleId'];
+		$article = $galleyItem['article'];
+		$articleId = $article->getId();
 		$galley = $galleyItem['galley'];
 		$journal = $galleyItem['journal'];
 		$journalAbb = $journal->getPath();
 		$journalSettingsDao =& DAORegistry::getDAO('JournalSettingsDAO');
 		$journalSettings = $journalSettingsDao->getJournalSettings($journal->getId());
-		$articleDao =& DAORegistry::getDAO('ArticleDAO');
-		$article = $articleDao->getArticle($articleId);
 		$issueDao =& DAORegistry::getDAO('IssueDAO');
 		$issue =& $issueDao->getIssueByArticleId($articleId, $journal->getId(), true);
 		import('classes.file.ArticleFileManager');
@@ -245,7 +265,7 @@ class frontpageCreator {
 			'pub_id'			=> $articleId,
 			'publisher'			=> $this->_noLineBreaks($journalSettings['publisherInstitution']  . ' ' . $this->_getLocalized($journalSettings['publisherNote'])),
 			'url'				=> Config::getVar('general', 'base_url') . '/' . $journalAbb . '/' . $articleId . '/' . $galley->getId(),
-			'urn'				=> isset($galley->_data['pub-id::other::urnDNB']) ? $galley->_data['pub-id::other::urnDNB'] : (isset($galley->_data['pub-id::other::urn']) ? $galley->_data['pub-id::other::urn'] : '###'), // take the URn created by the ojsde-dnburn pugin, if not present try the normla pkugins urn or set ###
+			'urn'				=> isset($galley->_data['pub-id::other::urnDNB']) ? $galley->_data['pub-id::other::urnDNB'] : (isset($galley->_data['pub-id::other::urn']) ? $galley->_data['pub-id::other::urn'] : ''), // take the URN created by the ojsde-dnburn pugin, if not present try the normla pkugins urn or set ###
 			'volume'			=> $issue->_data['volume'],
 			'year'				=> $issue->_data['year'],
 			'zenon_id'			=> '##'

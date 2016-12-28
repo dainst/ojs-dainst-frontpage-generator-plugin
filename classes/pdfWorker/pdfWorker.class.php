@@ -145,7 +145,7 @@ namespace dfm {
 		 * @return <string> fullpath of file with new frontmatter
 		 */
 		public function updateFrontpage($oldFile, $newFrontpage, $replace = true) {
-			$this->logger->log("update file: $oldFile with front matter $newFrontpage (replace: $replace)");
+			$this->logger->debug("update file: $oldFile with front matter $newFrontpage (replace: $replace)");
 			
 			$newFrontpage = escapeshellarg($newFrontpage);
 			$oldFile = escapeshellarg($oldFile);

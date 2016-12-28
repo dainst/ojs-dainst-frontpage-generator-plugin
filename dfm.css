@@ -1,0 +1,12 @@
+@CHARSET "UTF-8";
+
+
+.dainstPluginLog {
+	border: 1px solid silver; 
+	border-radius: 3px; 
+	padding: 0.6em
+}
+
+.alert .timestamp  {
+	margin-left: 2em
+}

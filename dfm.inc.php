@@ -15,9 +15,16 @@
  *  |                         |
  *  |                         +- uses: logger
  *  |                         +- creates: daiPDF (extends TCPDF) = a TCPDF implementation as TCPDF works like that
- *  +- creates: pdfMetadata = class to sum up functions to write metadata in the PDF
  *  
  * 
+ * 
+ * 
+ * Baustellen:
+ * - log / richtigen user und Message
+ * - Oberfläche: log richtig anzeigen
+ * - Ergebnis richtig handlen
+ * - URN Loop brechen: URN zuerst erzeugen oder
+ * - 
  * 
  * 
  * 
@@ -94,18 +101,20 @@ class dfm extends GenericPlugin {
 		if (!parent::manage($verb, $args, $message)) return false;
 
 		$journal =& Request::getJournal();
-
 		$templateMgr =& TemplateManager::getManager();
-
+		//$templateMgr->debugging = true;
+		$templateMgr->register_function('themResults', array($this, "showLog"));
+		$thePath = Request::getBaseUrl() . '/' . $this->pluginPath;
+		
 		switch ($verb) {
 			case 'settings':
-				
 				$journal =& Request::getJournal();
 				$journalId = ($journal ? $journal->getId() : CONTEXT_ID_NONE);
 				$templateMgr =& TemplateManager::getManager();
 				
 				$templateMgr->register_function('plugin_url', array(&$this, 'smartyPluginUrl'));
 				$templateMgr->setCacheability(CACHEABILITY_MUST_REVALIDATE);
+				$templateMgr->assign('additionalHeadData', $additionalHeadData."\n"."<link rel='stylesheet' href='$thePath/dfm.css' type='text/css' />");
 				
 				$this->import('classes.form.selectToRefreshForm');
 				$form = new selectToRefreshForm($this, $journalId);
@@ -113,10 +122,11 @@ class dfm extends GenericPlugin {
 				if (Request::getUserVar('save')) {
 					$form->readInputData();
 					if ($form->validate()) {
+						ob_start();
 						$form->execute();
-						//Request::redirect(null, 'manager', 'plugin', array('generic', 'dainstFrontMatter', 'settings'));
+						$this->log = ob_get_clean();
+						$templateMgr->display(dirname(__FILE__) . '/templates/log.tpl');
 					} else {
-						
 						$form->display();
 					}
 				} else {					
@@ -137,6 +147,12 @@ class dfm extends GenericPlugin {
 		require_once('classes/frontpageCreator.class.php');
 		$frontpageCreator = new frontpageCreator($this);
 		$frontpageCreator->runFrontpageUpate($id, $type);
+	}
+	
+	public $log; // @TODO replace with contact to $logger object
+	function showLog() {
+		echo $this->log;
+		
 	}
 }
 ?>

@@ -24,9 +24,7 @@ class selectToReFreshForm extends Form {
 		parent::Form($this->_plugin->getTemplatePath() . 'templates/selectToRefreshForm.tpl');
 	}
 	
-	function display($request = null, $template = null) {
-		$this->_plugin->user = $request->getUser();
-		var_dump($this->_plugin->user);
+	function display($request = null, $template = null) {;
 		return parent::display($request, $template);
 	}
 	

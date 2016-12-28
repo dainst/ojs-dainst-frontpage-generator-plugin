@@ -163,7 +163,7 @@ class daiPDF extends TCPDF {
 					$this->logger->debug("font $font successfull installed");
 				}
 			} else {
-				$this->logger->debug("font $font allready installed");
+				//$this->logger->debug("font $font allready installed");
 			}
 		}
 	

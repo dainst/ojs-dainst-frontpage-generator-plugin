@@ -1,5 +1,5 @@
 {strip}
-{assign var="pageTitle" value="plugins.themes.dainst.colorsheme"}
+{assign var="pageTitle" value="plugins.generic.dainstFrontmatter.title"}
 {include file="common/header.tpl"}
 {/strip}
 
