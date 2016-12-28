@@ -3,7 +3,8 @@
  * 
  * this class creates a pdf front page in the dainst style
  * 
- * it is designed to work in different cntexts, so everything wich nis OJS code is kept away
+ * it is designed to work in different contexts (the OJS Importer maybe for axample, or
+ * an OMP instacne or...), so everything wich is OJS-specific code is kept outside this class
  * 
  * @author Philipp Franck
  * 
@@ -11,6 +12,27 @@
  * 
  * 
  * usage:
+ * 
+ * 
+ * 		try {
+ * 
+ * 			$pdfWorker->fileToUpdate = $oldFile;
+ * 
+ *			// create new front matter
+ *			$newFrontmatterFile = $pdfWorker->createFrontPage();	
+ *
+ *			// attach frontpage to file
+ *			$tmpFile = $pdfWorker->updateFrontpage($pdfWorker->fileToUpdate, $newFrontmatterFile);
+ *		
+ *			// update pdf metadata
+ *			$newFile = $pdfWorker->updatePDFMetadata($tmpFile);
+ *
+ * 		} catch (\Exception $e) {
+ * 			echo "Error:" . $e->getMessage();
+ * 		}
+ * 
+ *		
+ * 
  *
  */
 

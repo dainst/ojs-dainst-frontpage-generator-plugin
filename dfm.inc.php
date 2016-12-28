@@ -1,7 +1,7 @@
 <?php
 /**
  * 
- * plugin that generated front pages for  our pfds
+ * plugin that generated front pages for our pfds
  * 
  * it is a little bit complicated structures since here come together the OO-Strcutires from OJS, TCPDF and the importer wor wich
  * this code was previously written
@@ -20,10 +20,11 @@
  * 
  * 
  * Baustellen:
- * - log / richtigen user und Message
- * - Oberfläche: log richtig anzeigen
+ * - log / richtigen user
+ * # log / Message
+ * # Oberfläche: log richtig anzeigen
  * - Ergebnis richtig handlen
- * - URN Loop brechen: URN zuerst erzeugen oder
+ * - URN Loop brechen: URN zuerst erzeugen oder pdf selbst austauschen
  * - 
  * 
  * 

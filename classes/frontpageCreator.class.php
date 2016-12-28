@@ -1,26 +1,37 @@
 <?php
 class frontpageCreator {
 		
-	public $galleysToUpdate = []; // format: {'galley': <ArticleGalley>, 'article': <Article>, 'journal': <Journal>}
+	public $galleysToUpdate = []; // contains arrays in the form of: {'galley': <ArticleGalley>, 'article': <Article>, 'journal': <Journal>}
 	
-	public $log;
+	public $log; // logger object
 	
-	public $plugin;
+	public $plugin; // the dfm pluign
+	public $user; // the active user // @TODO get the user
 	
-	public $tmp_path = '/var/www/tmp'; // @ TODO
+	public $tmp_path = '/var/www/tmp'; // @TODO get tmp path from config
 	
-	public $user;
 	
 	function __construct($plugin) {
 		$this->plugin = $plugin;
 		require_once("pdfWorker/logger.class.php");
 		$this->log = new \sometools\logger();
-		
+		/*
 		error_reporting(E_ALL & ~ E_DEPRECATED);
 		ini_set('display_errors', 'on');//*/
 	}
 	
-	
+	/**
+	 * This marvellous function extraordinaire does a fantastic job in creating in 
+	 * doing the update of a pdf frontpage
+	 * 
+	 * it takes an id and a type as sendet by the plugin's form and 
+	 * flushes the log.
+	 * 
+	 * 
+	 * 
+	 * @param <integer> $id - id of an object whose galleys shoould be updated
+	 * @param <type> $type - type of that object: journal, article or galley
+	 */
 	function runFrontpageUpate($id, $type) {
 		try {
 			
@@ -106,7 +117,12 @@ class frontpageCreator {
 	}
 	
 
-	
+	/**
+	 * registers a galley by its id for going to be updated
+	 * (my english grammar is outragous as usual)
+	 * 
+	 * @param <integer> $id
+	 */
 	function getGalley($id) {
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
 		$galley =& $galleyDao->getGalley($id);
@@ -114,7 +130,7 @@ class frontpageCreator {
 	}
 	
 	/**
-	 * get all galleys of an article 
+	 * registers all galleys of an article for going to be updated 
 	 * 
 	 * @param <integer> $id - article id
 	 * @param <Journal*> $journal
@@ -125,7 +141,7 @@ class frontpageCreator {
 	}
 	
 	/**
-	 * 
+	 * registers all galleys of a journal for going to be updated 
 	 * 
 	 * @param <integer> $id - journal id
 	 */
@@ -139,8 +155,9 @@ class frontpageCreator {
 	}
 	
 	/**
+	 * get an Journal by it's ID
 	 * 
-	 * @param <integer> $id - articleID
+	 * @param <integer> $id - journals ID
 	 * @return unknown
 	 */
 	function getJournal($id) {
@@ -149,12 +166,22 @@ class frontpageCreator {
 		return $journal;
 	}
 
+	/**
+	 * get an Article by it's ID
+	 * 
+	 * @param <integer> $id  - article ID
+	 * @return Article
+	 */
 	function getArticle($id) {
 		$articleDao =& DAORegistry::getDAO('ArticleDAO');
 		return $articleDao->getArticle($id);
 	}
 	
-	
+	/**
+	 * runs over the List of registewred galleys ($this->galleysToUpdate) and updates them
+	 * 
+	 * @throws Exception
+	 */
 	function processList() {
 		if (!$this->galleysToUpdate or !count($this->galleysToUpdate)) {
 			throw new Exception("no galleys given");
@@ -164,20 +191,26 @@ class frontpageCreator {
 		}
 	}
 	
+	/**
+	 * the more than awsome updating process itself wich will blow your mind with it's sheer awsomeness
+	 * 
+	 * 
+	 * @param unknown $galleyItem
+	 */
 	function processItem($galleyItem) {
 		$logToken = &$this->log->log('update galley "' . $galleyItem['galley']->getLabel() . '" of article "' . $galleyItem['article']->getArticleTitle() . '"');
 
 		// get journalController
-		$journalController = $this->getJournalController($galleyItem);	
+		$pdfWorker = $this->getPDFWorker($galleyItem);	
 		
 		// create new front matter
-		$newFrontmatterFile = $journalController->createFrontPage();	
+		$newFrontmatterFile = $pdfWorker->createFrontPage();	
 
 		// attach frontpage to file
-		$tmpFile = $journalController->updateFrontpage($journalController->fileToUpdate, $newFrontmatterFile);
+		$tmpFile = $pdfWorker->updateFrontpage($pdfWorker->fileToUpdate, $newFrontmatterFile);
 		
 		// update pdf metadata
-		$tmpFile = $journalController->updatePDFMetadata($tmpFile);
+		$tmpFile = $pdfWorker->updatePDFMetadata($tmpFile);
 		
 		// now that everythings seems to have worked (otherwise we would not be here but in an exception handler hopefully),
 		// we can copy back the shiny and overwrite the old one...
@@ -188,7 +221,11 @@ class frontpageCreator {
 		$logToken->type = 'success';
 	}
 	
-	
+	/**
+	 * 
+	 * @param <Galley> $galleyItem
+	 * @param <string> $newFile (path + filename)
+	 */
 	function replaceFile($galleyItem, $newFile) {
 		
 		// Do the Object Limbo, Baby!
@@ -231,10 +268,10 @@ class frontpageCreator {
 	 * and also for new PDF-metadata
 	 * 
 	 * 
-	 * @param unknown $galleyItem
+	 * @param <object> $galleyItem
 	 * @return $journal instance 
 	 */
-	function getJournalController($galleyItem) {
+	function getPDFWorker($galleyItem) {
 
 		// do the OJS object madness (wich most likely emerged from a poor java-bloated mind)
 		$article = $galleyItem['article'];
@@ -261,7 +298,7 @@ class frontpageCreator {
 		} else {
 			$class = "\\dfm\\pdfWorker";
 		}
-		$journalController = new $class(
+		$pdfWorker = new $class(
 			$this->log,
 			array(
 				'tmp_path'		=> $this->tmp_path,
@@ -295,26 +332,43 @@ class frontpageCreator {
 			$meta['issn_printed']= $journalSettings['printIssn'];
 		}
 		
-		$journalController->createMetadata($meta);
-		$journalController->fileToUpdate = $fileToUpdate;
-		return $journalController;
+		$pdfWorker->createMetadata($meta);
+		$pdfWorker->fileToUpdate = $fileToUpdate;
+		return $pdfWorker;
 	}
 
 
-	
+	/**
+	 * deleted whatever garbish was created on the way to the new frontmatter
+	 */
 	public function cleanTmpFolder() {
 		array_map('unlink', glob($this->tmp_path . '/*'));
 	}
 	
+	/**
+	 * removes linebreaks from a string and replaces them with whitespace
+	 * @param <string> $string
+	 * @return <string>
+	 */
 	private function _noLineBreaks($string) {
 		return preg_replace( "/\r|\n/", " ", $string);
 	}
 	
+	/**
+	 * selects the best string from an array of localized strings
+	 * @param <array> $array
+	 * @return <string>
+	 */
 	private function _getLocalized($array) {
 		$default = AppLocale::getPrimaryLocale();
 		return isset($array[$default]) ? $array[$default] : array_pop($array);
 	}
 	
+	/**
+	 * kills double spaces in a string
+	 * @param <string> $string
+	 * @return <string>
+	 */
 	private function _noDoubleSpaces($string) {
 		return preg_replace( "#\s{2,}#", " ", $string);
 	}
