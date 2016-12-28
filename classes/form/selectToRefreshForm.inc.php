@@ -17,7 +17,6 @@ class selectToReFreshForm extends Form {
 	private $_plugin;
 	private $_journalId;
 
-
 	function selectToReFreshForm(&$plugin, $journalId) {
 		$this->_plugin = $plugin;
 		$this->_journalId = $journalId;
@@ -28,8 +27,6 @@ class selectToReFreshForm extends Form {
 		return parent::display($request, $template);
 	}
 	
-
-
 	function execute() {
 		return  $this->_plugin->startUpdateFrontapges($this->getData('id'), $this->getData('type'));	
 	}
@@ -37,7 +34,7 @@ class selectToReFreshForm extends Form {
 	function readInputData() {
 		$vars = array(
 			'id' => "int",
-			'type' => array('galley')
+			'type' => array('galley', 'article', 'journal')
 		);
 		foreach ($vars as $k => $type) {
 			$v = Request::getUserVar($k);

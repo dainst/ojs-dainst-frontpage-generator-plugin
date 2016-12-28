@@ -16,5 +16,10 @@
 <div class='dainstPluginLog'>
 	{themResults}
 </div>
-<div class="separator"></div>	
+<br/>
+
+
+<input type="button" class="button" value="{translate key="common.ok"}" onclick="history.go(-1)"/>
+
+
 {include file="common/footer.tpl"}

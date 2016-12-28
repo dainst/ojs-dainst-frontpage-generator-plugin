@@ -105,16 +105,18 @@ class dfm extends GenericPlugin {
 		//$templateMgr->debugging = true;
 		$templateMgr->register_function('themResults', array($this, "showLog"));
 		$thePath = Request::getBaseUrl() . '/' . $this->pluginPath;
+		$templateMgr =& TemplateManager::getManager();
+		$templateMgr->setCacheability(CACHEABILITY_MUST_REVALIDATE);
 		
 		switch ($verb) {
 			case 'settings':
 				$journal =& Request::getJournal();
 				$journalId = ($journal ? $journal->getId() : CONTEXT_ID_NONE);
-				$templateMgr =& TemplateManager::getManager();
+				
 				
 				$templateMgr->register_function('plugin_url', array(&$this, 'smartyPluginUrl'));
-				$templateMgr->setCacheability(CACHEABILITY_MUST_REVALIDATE);
-				$templateMgr->assign('additionalHeadData', $additionalHeadData."\n"."<link rel='stylesheet' href='$thePath/dfm.css' type='text/css' />");
+				$templateMgr->register_function('selectJournal', array(&$this, 'selectJournal'));
+				$templateMgr->assign('additionalHeadData', "<link rel='stylesheet' href='$thePath/dfm.css' type='text/css' />\n<script src='$thePath/js/urlExtractor.js' ></script>");
 				
 				$this->import('classes.form.selectToRefreshForm');
 				$form = new selectToRefreshForm($this, $journalId);
@@ -142,11 +144,27 @@ class dfm extends GenericPlugin {
 	
 	
 	/* the function itself */ 
-	function startUpdateFrontapges($id, $type) {
-		
+	function startUpdateFrontapges($ids, $type) {	
 		require_once('classes/frontpageCreator.class.php');
 		$frontpageCreator = new frontpageCreator($this);
-		$frontpageCreator->runFrontpageUpate($id, $type);
+		foreach (explode(',', $ids) as $id) {
+			$frontpageCreator->runFrontpageUpate((int) $id, $type);
+		}
+
+	}
+	
+	/* helping hands */
+	
+	function selectJournal() {
+		$journalDao =& DAORegistry::getDAO('JournalDAO');
+		$r = '<select id="dfm_journalselect">';
+		$r .= '<option value="-1">--select journal--</option>';
+		foreach ($journalDao->getJournalTitles(true) as $id => $title) {
+			$r .= "<option value='$id'>$title</option>";
+		}
+		$r .= '</select>';
+		return $r;
+		
 	}
 	
 	public $log; // @TODO replace with contact to $logger object

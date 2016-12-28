@@ -15,26 +15,23 @@ class frontpageCreator {
 		$this->plugin = $plugin;
 		require_once("pdfWorker/logger.class.php");
 		$this->log = new \sometools\logger();
-		/*
+		
 		error_reporting(E_ALL & ~ E_DEPRECATED);
 		ini_set('display_errors', 'on');//*/
 	}
 	
 	
 	function runFrontpageUpate($id, $type) {
-		
-		$type = "journal"; // @TODO insert real data for testing
-		$id = 2;
-		
 		try {
 			
 			$this->cleanTmpFolder();
-			
+
 			if ($type == "journal") {
 				$this->getJournalGalleys($id);
 			} elseif ($type == "article") {
 				$this->getArticleGalleys($id);
 			} elseif ($type == "galley") {
+				throw new \Exception("by galley does not work");
 				$this->getGalley($id);
 			}
 			$this->processList();
@@ -53,47 +50,53 @@ class frontpageCreator {
 	 * 
 	 * @param <ArticleGalley|array:ArticleGalley> $galleys
 	 * @param <Article|integer> $article or $article-id
-	 * @param unknown $journal
+	 * @param <Journal|bool> $journal
 	 */
-	function registerGalleys($galleys, $article, $journal) {
+	function registerGalleys($galleys, $article, $journal = false) {
 
 		if (!is_array($galleys)) {
 			$galleys = array($galleys);
 		}
-	
-		$articleDao =& DAORegistry::getDAO('ArticleDAO');
 		
 		foreach ($galleys as $galley) {
 
-			if (!$journal or (get_class($journal) != "Journal")) {
-				$this->log->warning("not journal given, but a " . get_class($journal));
-				continue;
-			}
-			
+			// make sure, we have a proper galley here
 			if (!$galley or (get_class($galley) != "ArticleGalley")) {
 				$this->log->warning("galley skipped, no galley: " . print_r($galley,1));
 				continue;
 			}
-	
+			
 			if (!$galley->isPdfGalley()) {
 				$this->log->warning("galley skipped, no pdf galley");
 				continue;
 			}
-				
+			
 			if ($galley->_data['fileStage'] != 7) {
 				$this->log->warning("galley skipped, not public");
 				continue;
 			}
 			
+			// make sure we have an article, else: get it
 			if (is_numeric($article)) {
-				$article = $articleDao->getArticle($article);
-			}
-			
-			if (!article or (get_class($article) != 'Article')) {
-				$this->log->warning("galley skipped, article not found");
-				continue;
+				$article = $this->getArticle($article);
 			}
 				
+			if (!article or (get_class($article) != 'Article')) {
+				$this->log->warning("galley skipped, article not found: " . print_r($article,1));
+				continue;
+			}
+			
+			// make sure thatw we have a journal, or get it
+			if (!$journal) {
+				$journal = $this->getJournal($article->getJournalId());
+			}
+			
+			if (!$journal or (get_class($journal) != "Journal")) {
+				$this->log->warning("not journal given, but a " . get_class($journal));
+				continue;
+			}
+			
+			// ok
 			$this->galleysToUpdate[] = array(
 				'galley'	=> $galley,
 				'article'	=> $article,
@@ -107,21 +110,25 @@ class frontpageCreator {
 	function getGalley($id) {
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
 		$galley =& $galleyDao->getGalley($id);
-		$this->registerGalleys($galley, 1234564564); // @TODO how get article & journal
+		$this->registerGalleys($galley);
 	}
 	
-	function getArticleGalleys($id, $journal) {
+	/**
+	 * get all galleys of an article 
+	 * 
+	 * @param <integer> $id - article id
+	 * @param <Journal*> $journal
+	 */
+	function getArticleGalleys($id, $journal = null) {
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
-		
-		if (!$journal) {
-			// @TODO how get journal
-		}
-		
-		$galleyDao->getGalleysByArticle(1);
-		
 		$this->registerGalleys($galleyDao->getGalleysByArticle($id), $id, $journal);
 	}
 	
+	/**
+	 * 
+	 * 
+	 * @param <integer> $id - journal id
+	 */
 	function getJournalGalleys($id) {
 		$articleDao =& DAORegistry::getDAO('ArticleDAO');
 		$result = $articleDao->getArticlesByJournalId($id);
@@ -131,12 +138,22 @@ class frontpageCreator {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param <integer> $id - articleID
+	 * @return unknown
+	 */
 	function getJournal($id) {
 		$journalDao =& DAORegistry::getDAO('JournalDAO');
 		$journal =& $journalDao->getJournal($id);
 		return $journal;
 	}
 
+	function getArticle($id) {
+		$articleDao =& DAORegistry::getDAO('ArticleDAO');
+		return $articleDao->getArticle($id);
+	}
+	
 	
 	function processList() {
 		if (!$this->galleysToUpdate or !count($this->galleysToUpdate)) {
@@ -175,11 +192,11 @@ class frontpageCreator {
 	function replaceFile($galleyItem, $newFile) {
 		
 		// Do the Object Limbo, Baby!
-		$oldGalley = $galleyItem['galley'];
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
+		$oldGalley = $galleyItem['galley'];
 		$galley = new ArticleGalley();
 		$galley->setLabel('PDF');
-		$galley->setArticleId($galleyItem['articleId']);		
+		$galley->setArticleId($galleyItem['article']->getId());		
 		$galley->setLocale($oldGalley->getLocale());		
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($galleyItem['article']->getId());
@@ -187,7 +204,7 @@ class frontpageCreator {
 		$galley->setFileId($fileId);
 		$galleyDao->insertGalley($galley);
 		$galleyDao->deleteGalley($oldGalley);
-
+		
 		import('classes.article.log.ArticleLog');
 		ArticleLog::logEventHeadless(
 			$journal, 

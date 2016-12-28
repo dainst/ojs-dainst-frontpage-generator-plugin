@@ -4,5 +4,9 @@
 <locale name="en_US" full_name="U.S. English">
 	<message key="plugins.generic.dainstFrontmatter.updated">Titelseite aktualisiert</message>
 	<message key="plugins.generic.dainstFrontmatter.resultsTitle">Titelseiten aktualisieren - Protokoll</message>
-	<message key="plugins.generic.dainstFrontmatter.resultsTitle">Titelseiten aktualisieren</message>
+	<message key="plugins.generic.dainstFrontmatter.title">Titelseiten aktualisieren</message>
+	<message key="article.plugins.generic.dainstFrontmatter.idlist">aktualisiere die folgenden Titelseiten</message>
+	<message key="article.plugins.generic.dainstFrontmatter.idlistText">Geben sie eine Kommagetrennte LIste von IDs ein oder eine URL, die zu einem Artikel oder einer Artikelfahne zeigt.</message>
+	<message key="article.plugins.generic.dainstFrontmatter.idsAre">Diese IDs gehören zu:</message>
+
 </locale>

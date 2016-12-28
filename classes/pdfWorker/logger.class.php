@@ -84,9 +84,11 @@ namespace sometools {
 
 		}
 		
-		function __construct($debug = false) {
-			$this->debug = $debug;
+		function __construct($debug = null) {
 			$this->_lockstart = microtime(true);
+			if ($debug !== null) {
+				$this->debug = $debug;
+			}
 		}
 		
 		function dump() {
