@@ -114,7 +114,6 @@ class dfm extends GenericPlugin {
 				$journal =& Request::getJournal();
 				$journalId = ($journal ? $journal->getId() : CONTEXT_ID_NONE);
 				
-				
 				$templateMgr->register_function('plugin_url', array(&$this, 'smartyPluginUrl'));
 				$templateMgr->register_function('selectJournal', array(&$this, 'selectJournal'));
 				$templateMgr->assign('additionalHeadData', "<link rel='stylesheet' href='$thePath/dfm.css' type='text/css' />\n<script src='$thePath/js/urlExtractor.js' ></script>");

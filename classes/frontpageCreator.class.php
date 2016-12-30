@@ -241,15 +241,16 @@ class frontpageCreator {
 
 		$galleyDao->deleteGalley($oldGalley);
 		
+		$user = Request::getUser();
 		import('classes.article.log.ArticleLog');
 		ArticleLog::logEventHeadless(
 			$journal, 
-			0, // @TODO insert correct user id!
+			$user->getId(),
 			$article,
 			ARTICLE_LOG_TYPE_DEFAULT,
 			'plugins.generic.dainstFrontmatter.updated',
 			array(
-				'userName' => 'Der Lustige user"',  // @TODO insert correct user id!
+				'userName' => $user->getFullName(),
 				'articleId' => $article->getId()
 			)
 		);
@@ -285,8 +286,8 @@ class frontpageCreator {
 		$journalAbb = $journal->getPath();
 		$journalSettingsDao =& DAORegistry::getDAO('JournalSettingsDAO');
 		$journalSettings = $journalSettingsDao->getJournalSettings($journal->getId());
-		//$issueDao =& DAORegistry::getDAO('IssueDAO');
-		//$issue =& $issueDao->getIssueByArticleId($articleId, $journal->getId(), true);
+		$issueDao =& DAORegistry::getDAO('IssueDAO');
+		$issue =& $issueDao->getIssueByArticleId($articleId, $journal->getId(), true);
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
 		$articleFile = $articleFileManager->getFile($galley->_data['fileId']);
