@@ -98,8 +98,8 @@ class dfm extends GenericPlugin {
 	 * @param $message string Location for the plugin to put a result msg
 	 * @return boolean
 	 */
-	function manage($verb, $args, &$message) {
-		if (!parent::manage($verb, $args, $message)) return false;
+	function manage($verb, $args, &$message, &$messageParams) {
+		if (!parent::manage($verb, $args, $message, &$messageParams)) return false;
 
 		$journal =& Request::getJournal();
 		$templateMgr =& TemplateManager::getManager();

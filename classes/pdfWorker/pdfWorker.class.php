@@ -209,11 +209,11 @@ namespace dfm {
 			}
 	
 			if (strpos($response, 'Error:') !== false) {
-				throw new Exception('Error while trying to write pdf metadata:' . $response);
+				throw new \Exception('Error while trying to write pdf metadata:' . $response);
 			}
 	
 			if (strpos($response, 'exiftool: not found') !== false) {
-				throw new Exception('Error: exiftool missing: ' . $response);
+				throw new \Exception('Error: exiftool missing: ' . $response);
 			}
 			
 			return $file;
