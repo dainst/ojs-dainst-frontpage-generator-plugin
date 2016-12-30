@@ -135,8 +135,12 @@ class frontpageCreator {
 	 */
 	function getGalley($id) {
 		$galleyDao = DAORegistry::getDAO('ArticleGalleyDAO');
-		$galley = $galleyDao->getGalley($id);		
-		$this->registerGalleys($galley, $galley->getArticleId());
+		$galley = $galleyDao->getGalley($id);
+		if (method_exists($galley, 'getArticleId')) {
+			$this->registerGalleys($galley, $galley->getArticleId());
+		} else {
+			$this->log->log("could not get galley nr " . $id);
+		}
 	}
 	
 	/**
