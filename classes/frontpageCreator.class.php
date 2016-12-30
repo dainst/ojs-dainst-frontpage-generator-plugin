@@ -6,15 +6,14 @@ class frontpageCreator {
 	public $log; // logger object
 	
 	public $plugin; // the dfm pluign
-	public $user; // the active user // @TODO get the user
 	
-	public $tmp_path = '/var/www/tmp'; // @TODO get tmp path from config
-	
+	public $tmp_path;
 	
 	function __construct($plugin) {
 		$this->plugin = $plugin;
 		require_once("pdfWorker/logger.class.php");
 		$this->log = new \sometools\logger();
+		
 		/*
 		error_reporting(E_ALL & ~ E_DEPRECATED);
 		ini_set('display_errors', 'on');//*/
@@ -39,8 +38,15 @@ class frontpageCreator {
 		
 		try {
 			
+			// get and clean tmpFolder
+			$this->tmp_path = Config::getVar('dainst', 'tmpPath');
+			$this->log->debug("tmp path: ". $this->tmp_path);
+			if (!is_dir($this->tmp_path)) {
+				throw new \Exception("No proper tmp path defined: " . $this->tmpPath);
+			}
 			$this->cleanTmpFolder();
 
+			// get items to update and do it
 			if ($type == "journal") {
 				$this->getJournalGalleys($id);
 			} elseif ($type == "article") {
