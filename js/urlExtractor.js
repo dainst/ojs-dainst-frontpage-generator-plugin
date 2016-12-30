@@ -22,7 +22,6 @@ function dfmExtract(str) {
 		return;
 	}
 	
-	
 	var m;
 	var numbers = [];
 	const regex = /(.+view\/)?(\d+)(\/(\d+))?/g;

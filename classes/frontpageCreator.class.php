@@ -92,7 +92,7 @@ class frontpageCreator {
 				$article = $this->getArticle($article);
 			}
 				
-			if (!article or (get_class($article) != 'Article')) {
+			if (!$article or (get_class($article) != 'Article')) {
 				$this->log->warning("galley skipped, article not found: " . print_r($article,1));
 				continue;
 			}
@@ -108,10 +108,11 @@ class frontpageCreator {
 			}
 			
 			// ok
-			$this->galleysToUpdate[] = array(
+			$this->galleysToUpdate[] = (object) array(
 				'galley'	=> $galley,
 				'article'	=> $article,
-				'journal'	=> $journal
+				'journal'	=> $journal,
+				'newGalley'	=> null
 			);
 		}
 	}
@@ -198,7 +199,7 @@ class frontpageCreator {
 	 * @param unknown $galleyItem
 	 */
 	function processItem($galleyItem) {
-		$logToken = &$this->log->log('update galley "' . $galleyItem['galley']->getLabel() . '" of article "' . $galleyItem['article']->getArticleTitle() . '"');
+		$logToken = &$this->log->log('update galley "' . $galleyItem->galley->getLabel() . '" of article "' . $galleyItem->article->getArticleTitle() . '"');
 
 		// get journalController
 		$pdfWorker = $this->getPDFWorker($galleyItem);	
@@ -227,40 +228,43 @@ class frontpageCreator {
 	 * @param <string> $newFile (path + filename)
 	 */
 	function replaceFile($galleyItem, $newFile) {
-		
 		// Do the Object Limbo, Baby!
-		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
-		$oldGalley = $galleyItem['galley'];
-		$galley = new ArticleGalley();
-		$galley->setLabel('PDF');
-		$galley->setArticleId($galleyItem['article']->getId());		
-		$galley->setLocale($oldGalley->getLocale());		
+		$article = $galleyItem->article;
+		$oldGalley = $galleyItem->galley;
+		$newGalley = $galleyItem->newGalley;
 		import('classes.file.ArticleFileManager');
-		$articleFileManager = new ArticleFileManager($galleyItem['article']->getId());
+		$articleFileManager = new ArticleFileManager($article->getId());
 		$fileId = $articleFileManager->copyPublicFile($newFile, 'application/pdf');
-		$galley->setFileId($fileId);
-		$galleyDao->insertGalley($galley);
+		$newGalley->setFileId($fileId);
+		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
+		$galleyDao->insertGalley($newGalley);
+
 		$galleyDao->deleteGalley($oldGalley);
 		
 		import('classes.article.log.ArticleLog');
 		ArticleLog::logEventHeadless(
 			$journal, 
 			0, // @TODO insert correct user id!
-			$galleyItem['article'],
+			$article,
 			ARTICLE_LOG_TYPE_DEFAULT,
 			'plugins.generic.dainstFrontmatter.updated',
 			array(
 				'userName' => 'Der Lustige user"',  // @TODO insert correct user id!
-				'articleId' => $galleyItem['article']->getId()
+				'articleId' => $article->getId()
 			)
 		);
-		// NUR DASS ES SO NICHT GEHT! DA KENNT MAN JA WIEDER DIE URN NICHT IM VORFELD...
-		// wir müssen sie selber generieren, das sollte doch gehen...
-		// a) doch einfach den file ersetzen, keine neue Galley anlegen
-		//     * sollte man die galley nicht archivieren können, kann man das ruhig machen 
-		// b) erst die galley erstellen, URN erzeugen, dann file erzeugen und attachen... ob das geht?
 	}
 
+	
+	function createPubIds($galley, $article, $preview = false) {
+		$pubIdPlugins =& PluginRegistry::loadCategory('pubIds', true, $article->getJournalId());
+		$pubIds = array();
+		foreach ($pubIdPlugins as $pubIdPlugin) {
+			$pubIdType = $pubIdPlugin->getPubIdType();
+			$pubIds[$pubIdType] = $pubIdPlugin->getPubId($galley, $preview);
+		}
+		return $pubIds;
+	}
 		
 	
 	/**
@@ -274,21 +278,28 @@ class frontpageCreator {
 	function getPDFWorker($galleyItem) {
 
 		// do the OJS object madness (wich most likely emerged from a poor java-bloated mind)
-		$article = $galleyItem['article'];
+		$article = $galleyItem->article;
 		$articleId = $article->getId();
-		$galley = $galleyItem['galley'];
-		$journal = $galleyItem['journal'];
+		$galley = $galleyItem->galley;
+		$journal = $galleyItem->journal;
 		$journalAbb = $journal->getPath();
 		$journalSettingsDao =& DAORegistry::getDAO('JournalSettingsDAO');
 		$journalSettings = $journalSettingsDao->getJournalSettings($journal->getId());
-		$issueDao =& DAORegistry::getDAO('IssueDAO');
-		$issue =& $issueDao->getIssueByArticleId($articleId, $journal->getId(), true);
+		//$issueDao =& DAORegistry::getDAO('IssueDAO');
+		//$issue =& $issueDao->getIssueByArticleId($articleId, $journal->getId(), true);
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
 		$articleFile = $articleFileManager->getFile($galley->_data['fileId']);
 		$fileToUpdate = $articleFileManager->filesDir .  $articleFileManager->fileStageToPath($articleFile->getFileStage()) . '/' . $articleFile->getFileName();
+		$newGalley = new ArticleGalley();
+		$newGalley->setLabel('PDF');
+		$newGalley->setArticleId($articleId);
+		$newGalley->setLocale($galley->getLocale());
+		$newGalley->setFileType('application/pdf'); // important!
+		$pids = $this->createPubIds($newGalley, $article);
+		$this->log->log("created the folowing PIDs: " . print_r($pids,1));
+		$galleyItem->newGalley = $newGalley;
 		
-				
 		// get journal Controller
 		// some journals (may) need special treatment for example chiron has two different publishers, but we want only print the right one one th frontpage
 		require_once("pdfWorker/pdfWorker.class.php");
@@ -319,7 +330,7 @@ class frontpageCreator {
 			'pub_id'			=> $articleId,
 			'publisher'			=> $this->_noLineBreaks($journalSettings['publisherInstitution']  . ' ' . $this->_getLocalized($journalSettings['publisherNote'])),
 			'url'				=> Config::getVar('general', 'base_url') . '/' . $journalAbb . '/' . $articleId . '/' . $galley->getId(),
-			'urn'				=> isset($galley->_data['pub-id::other::urnDNB']) ? $galley->_data['pub-id::other::urnDNB'] : (isset($galley->_data['pub-id::other::urn']) ? $galley->_data['pub-id::other::urn'] : ''), // take the URN created by the ojsde-dnburn pugin, if not present try the normla pkugins urn or set ###
+			'urn'				=> isset($pids['other::urnDNB']) ? $pids['other::urnDNB'] : (isset($pids['other::urn']) ? $pids['other::urn'] : ''), // take the URN created by the ojsde-dnburn pugin, if not present try the normla pkugins urn or set ###
 			'volume'			=> $issue->_data['volume'],
 			'year'				=> $issue->_data['year'],
 			'zenon_id'			=> '##'

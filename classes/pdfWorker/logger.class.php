@@ -17,7 +17,7 @@ namespace sometools {
 		 * 
 		 * @param <string> $string
 		 */
-		function &debug($string) {
+		function debug($string) {
 			if ($this->debug) {
 				return $this->_pushlog($string, 'debug');
 			} else {
@@ -43,11 +43,11 @@ namespace sometools {
 		 * @param <string> $string
 		 * @param <string> $type (default|warning|danger|success|...)
 		 */
-		function &log($string, $type = 'info') {
+		function log($string, $type = 'info') {
 			return $this->_pushlog($string, $type);
 		}
 		
-		private function &_pushlog($string, $type) {
+		private function _pushlog($string, $type) {
 			if (gettype($string) !== "string") {
 				$string = '<pre>' . print_r($string, 1) . '</pre>';
 			}
@@ -56,7 +56,7 @@ namespace sometools {
 			$item->text = $string;
 			$item->type = $type;
 			
-			if ($this->debug or $item->logTimestamps) {
+			if ($this->debug or $this->logTimestamps) {
 				$item->timestamp = $this->_timestamp();
 			}
 			if ($this->debug) {
