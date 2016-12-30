@@ -4,7 +4,7 @@ namespace dfm\pdfWorkers {
 		function setMetadata($data) {
 	
 			$this->metadata['journal_sub'] 		= 'Mitteilungen der Kommission für alte Geschichte und Epigraphik des Deutschen Archäologischen Instituts';
-			$this->metadata['editor'] 			= "Kommission für Alte Geschichte und Epigraphik des DAI, Amalienstr. 73b, 80799 München";
+			$this->metadata['editor'] 			= "<br>Kommission für Alte Geschichte und Epigraphik des DAI, Amalienstr. 73b, 80799 München";
 			
 			if ($this->metadata['volume'] > 35) {
 				$this->metadata['publisher'] 	= "Walter de Gruyter GmbH, Berlin";
@@ -18,7 +18,7 @@ namespace dfm\pdfWorkers {
 		}
 		
 		
-		public $smallMode = true;
+		public $smallMode = false;
 		
 	}
 }
