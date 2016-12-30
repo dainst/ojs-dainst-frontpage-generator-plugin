@@ -42,7 +42,6 @@ class frontpageCreator {
 			} elseif ($type == "article") {
 				$this->getArticleGalleys($id);
 			} elseif ($type == "galley") {
-				throw new \Exception("by galley does not work");
 				$this->getGalley($id);
 			}
 			$this->processList();
@@ -125,9 +124,9 @@ class frontpageCreator {
 	 * @param <integer> $id
 	 */
 	function getGalley($id) {
-		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
-		$galley =& $galleyDao->getGalley($id);
-		$this->registerGalleys($galley);
+		$galleyDao = DAORegistry::getDAO('ArticleGalleyDAO');
+		$galley = $galleyDao->getGalley($id);		
+		$this->registerGalleys($galley, $galley->getArticleId());
 	}
 	
 	/**
