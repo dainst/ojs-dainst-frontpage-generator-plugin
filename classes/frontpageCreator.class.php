@@ -20,6 +20,8 @@ class frontpageCreator {
 		ini_set('display_errors', 'on');//*/
 	}
 	
+
+	
 	/**
 	 * This marvellous function extraordinaire does a fantastic job in creating in 
 	 * doing the update of a pdf frontpage
@@ -33,6 +35,8 @@ class frontpageCreator {
 	 * @param <type> $type - type of that object: journal, article or galley
 	 */
 	function runFrontpageUpate($id, $type) {
+		
+		
 		try {
 			
 			$this->cleanTmpFolder();

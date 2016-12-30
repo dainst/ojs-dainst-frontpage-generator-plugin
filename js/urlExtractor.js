@@ -24,7 +24,7 @@ function dfmExtract(str) {
 	
 	var m;
 	var numbers = [];
-	const regex = /(.+view\/)?(\d+)(\/(\d+))?/g;
+	const regex = /(\/\w+\/)?(\d+)(\/(\d+))?/g;
 	while ((m = regex.exec(str)) !== null) {
 	    // This is necessary to avoid infinite loops with zero-width matches
 	    if (m.index === regex.lastIndex) {
