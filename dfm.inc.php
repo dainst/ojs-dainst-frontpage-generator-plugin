@@ -99,7 +99,7 @@ class dfm extends GenericPlugin {
 	 * @return boolean
 	 */
 	function manage($verb, $args, &$message, &$messageParams) {
-		if (!parent::manage($verb, $args, $message, &$messageParams)) return false;
+		if (!parent::manage($verb, $args, $message, $messageParams)) return false;
 
 		$journal =& Request::getJournal();
 		$templateMgr =& TemplateManager::getManager();
