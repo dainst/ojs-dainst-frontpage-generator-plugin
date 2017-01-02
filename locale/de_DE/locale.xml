@@ -11,5 +11,5 @@
 	<message key="article.plugins.generic.dainstFrontmatter.idlistselected">Aktualisiere Titelseiten einzelner Beiträge</message>
 	<message key="article.plugins.generic.dainstFrontmatter.idlistText">Fügen Sie in den Kasten unten entweder die ID bzw. eine (kommagetrennte) Liste von IDs ein oder eine URL, die zu einem Artikel oder einer Artikelfahne zeigt, ...</message>
 	<message key="article.plugins.generic.dainstFrontmatter.idsAre">... und geben Sie an, zu welchem Kriterium die ID(s) gehören:</message>
-
+	<message key="article.plugins.generic.dainstFrontmatter.button.update">Aktualisiere Titelseite(n)</message>
 </locale>
