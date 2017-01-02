@@ -5,8 +5,11 @@
 	<message key="plugins.generic.dainstFrontmatter.updated">Titelseite aktualisiert</message>
 	<message key="plugins.generic.dainstFrontmatter.resultsTitle">Titelseiten aktualisieren - Protokoll</message>
 	<message key="plugins.generic.dainstFrontmatter.title">Titelseiten aktualisieren</message>
-	<message key="article.plugins.generic.dainstFrontmatter.idlist">aktualisiere die folgenden Titelseiten</message>
-	<message key="article.plugins.generic.dainstFrontmatter.idlistText">Geben sie eine Kommagetrennte LIste von IDs ein oder eine URL, die zu einem Artikel oder einer Artikelfahne zeigt.</message>
-	<message key="article.plugins.generic.dainstFrontmatter.idsAre">Diese IDs gehören zu:</message>
+	<message key="article.plugins.generic.dainstFrontmatter.idlistjournal">Aktualisiere Titelseiten einer ganzen Zeitschrift</message>
+	<message key="article.plugins.generic.dainstFrontmatter.idlistTextjournal">Bitte wählen Sie die Zeitschrift aus, deren Titelseiten aktualisiert werden sollen. 
+		(Die korrespondierende ID wird automatisch eingefügt.) </message>
+	<message key="article.plugins.generic.dainstFrontmatter.idlistselected">Aktualisiere Titelseiten einzelner Beiträge</message>
+	<message key="article.plugins.generic.dainstFrontmatter.idlistText">Fügen Sie in den Kasten unten entweder die ID bzw. eine (kommagetrennte) Liste von IDs ein oder eine URL, die zu einem Artikel oder einer Artikelfahne zeigt, ...</message>
+	<message key="article.plugins.generic.dainstFrontmatter.idsAre">... und geben Sie an, zu welchem Kriterium die ID(s) gehören:</message>
 
 </locale>
