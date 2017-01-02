@@ -19,13 +19,6 @@
  * 
  * 
  * 
- * Baustellen:
- * - log / richtigen user
- * # log / Message
- * # Oberfläche: log richtig anzeigen
- * - Ergebnis richtig handlen
- * - URN Loop brechen: URN zuerst erzeugen oder pdf selbst austauschen
- * - 
  * 
  * 
  * 

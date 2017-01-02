@@ -3,7 +3,7 @@ namespace sometools {
 	
 	class logger {
 		
-		public $debug = false;
+		public $debugmode = false;
 		public $logTimestamps = true;
 		
 		public $log = [];
@@ -18,7 +18,7 @@ namespace sometools {
 		 * @param <string> $string
 		 */
 		function debug($string) {
-			if ($this->debug) {
+			if ($this->debugmode) {
 				return $this->_pushlog($string, 'debug');
 			} else {
 				return new entry();
@@ -56,10 +56,10 @@ namespace sometools {
 			$item->text = $string;
 			$item->type = $type;
 			
-			if ($this->debug or $this->logTimestamps) {
+			if ($this->debugmode or $this->logTimestamps) {
 				$item->timestamp = $this->_timestamp();
 			}
-			if ($this->debug) {
+			if ($this->debugmode) {
 				$item->debuginfo = $this->_backtrace();
 			}
 			
@@ -87,7 +87,7 @@ namespace sometools {
 		function __construct($debug = null) {
 			$this->_lockstart = microtime(true);
 			if ($debug !== null) {
-				$this->debug = $debug;
+				$this->debugmode = $debug;
 			}
 		}
 		
