@@ -15,7 +15,7 @@
 <input type="radio" name="type" value="article" id="type2" selected="selected"><label for="type2">Article</label><br>
 <input type="radio" name="type" value="journal" id="type3"><label for="type3">Journal</label><br>
 <br/>
-<input type="submit" name="save" class="button defaultButton" value="REFRESH COVER PAGE"/>
+<input type="submit" name="save" class="button defaultButton" value="Update Front Matter(s)"/>
 <input type="button" class="button" value="{translate key="common.cancel"}" onclick="history.go(-1)"/>
 </form>
 
