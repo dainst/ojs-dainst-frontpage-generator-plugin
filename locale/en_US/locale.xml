@@ -6,7 +6,7 @@
 	<message key="plugins.generic.dainstFrontmatter.resultsTitle">Update Front Matter</message>
 	<message key="plugins.generic.dainstFrontmatter.title">Update Front Matter</message>
 	<message key="article.plugins.generic.dainstFrontmatter.idlist">Update Front Matters of ...</message>
-	<message key="article.plugins.generic.dainstFrontmatter.idlistText">Please select the journal you want to update its front matters. 
-		Or insert an ID or a list of IDs (separation doesn’t matter) into the box below ...</message>
+	<message key="article.plugins.generic.dainstFrontmatter.idlistTextjournal">Please select the journal you want to update its front matters.</message>
+	<message key="article.plugins.generic.dainstFrontmatter.idlistText">Or insert an ID or a list of IDs (separation doesn’t matter) into the box below ...</message>
 	<message key="article.plugins.generic.dainstFrontmatter.idsAre">... and specify to which criteria the ID(s) belong to:</message>
 </locale>
