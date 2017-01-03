@@ -353,7 +353,7 @@ class frontpageCreator {
 		// fill it with data
 		$meta = array(
 			'article_author'	=> $this->_noDoubleSpaces($article->getAuthorString(false, ' – ')),
-			'article_title'		=> $this->_getLocalized($article->_data['cleanTitle']),
+			'article_title'		=> $this->_getLocalized($article->_data['title']),
 			'editor'			=> '<br>' . $this->_noLineBreaks($journalSettings['contactName'] . ' ' . $this->_getLocalized($journalSettings['contactAffiliation'])),
 			'journal_title'		=> $this->_getLocalized($journalSettings['title']), 
 			'journal_url'		=> Config::getVar('general', 'base_url') . '/' . $journalAbb,
