@@ -326,7 +326,7 @@ class frontpageCreator {
 		$galleyItem->dirty = true;
 		
 		$pids = $this->createPubIds($newGalley, $article);
-		$this->log->log("created the folowing PIDs: " . print_r($pids,1));
+		$this->log->log("created the following PIDs: " . print_r($pids,1));
 		$galleyItem->newGalley = $newGalley;
 		
 		// get journal Controller
