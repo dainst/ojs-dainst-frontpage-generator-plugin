@@ -311,7 +311,7 @@ class frontpageCreator {
 		$newGalley->setLocale($galley->getLocale());
 		$newGalley->setFileType('application/pdf'); // important!
 		$pids = $this->createPubIds($newGalley, $article);
-		$this->log->log("created the folowing PIDs: " . print_r($pids,1));
+		$this->log->log("created the following PIDs: " . print_r($pids,1));
 		$galleyItem->newGalley = $newGalley;
 		
 		// get journal Controller
