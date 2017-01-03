@@ -231,7 +231,7 @@ class frontpageCreator {
 
 		// attach frontpage to file
 		$tmpFile = $pdfWorker->updateFrontpage($pdfWorker->fileToUpdate, $newFrontmatterFile);
-		throw new \Exception('what if... an error would happen?');
+
 		// update pdf metadata
 		$tmpFile = $pdfWorker->updatePDFMetadata($tmpFile);
 		
