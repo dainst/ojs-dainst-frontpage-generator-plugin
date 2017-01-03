@@ -258,6 +258,7 @@ class frontpageCreator {
 		$articleFileManager = new ArticleFileManager($article->getId());
 		$fileId = $articleFileManager->copyPublicFile($newFile, 'application/pdf');
 		$newGalley->setFileId($fileId);	
+		$newGalley->setSequence(0);
 		$newGalley->setFileType('application/pdf'); // important!
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
 		$galleyDao->updateGalley($newGalley);
@@ -319,6 +320,7 @@ class frontpageCreator {
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
 		$newGalley = new ArticleGalley();
 		$newGalley->setLabel('PDF');
+		$newGalley->setSequence(0);
 		$newGalley->setFileType('application/pdf'); // important!
 		$newGalley->setArticleId($articleId);
 		$newGalley->setLocale($galley->getLocale());
