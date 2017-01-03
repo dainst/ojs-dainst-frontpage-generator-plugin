@@ -1,8 +1,15 @@
 <?php
 class frontpageCreator {
 		
-	public $galleysToUpdate = []; // contains arrays in the form of: {'galley': <ArticleGalley>, 'article': <Article>, 'journal': <Journal>}
-	
+	public $galleysToUpdate = []; 
+	/* contains arrays in the form of: 
+		{
+			'galley': <ArticleGalley>, 
+			'article': <Article>, 
+			'journal': <Journal>,
+			'dirty': <boolean> (when galley is created but file is missing)
+		}
+	*/
 	public $log; // logger object
 	
 	public $plugin; // the dfm pluign
@@ -59,6 +66,8 @@ class frontpageCreator {
 		} catch (Exception $e) {
 			echo "<div class='alert alert-danger'>ERROR: " . $e->getMessage() . "</div>";
 		}
+		
+		$this->removeUnfinishedGalleys();
 		
 		$this->log->dumpLog();
 	}
@@ -222,7 +231,7 @@ class frontpageCreator {
 
 		// attach frontpage to file
 		$tmpFile = $pdfWorker->updateFrontpage($pdfWorker->fileToUpdate, $newFrontmatterFile);
-		
+		throw new \Exception('what if... an error would happen?');
 		// update pdf metadata
 		$tmpFile = $pdfWorker->updatePDFMetadata($tmpFile);
 		
@@ -248,10 +257,12 @@ class frontpageCreator {
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($article->getId());
 		$fileId = $articleFileManager->copyPublicFile($newFile, 'application/pdf');
-		$newGalley->setFileId($fileId);
+		$newGalley->setFileId($fileId);	
+		$newGalley->setFileType('application/pdf'); // important!
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
-		$galleyDao->insertGalley($newGalley);
+		$galleyDao->updateGalley($newGalley);
 
+		$galleyItem->dirty = false;
 		$galleyDao->deleteGalley($oldGalley);
 		
 		$user = Request::getUser();
@@ -270,7 +281,7 @@ class frontpageCreator {
 	}
 
 	
-	function createPubIds($galley, $article, $preview = false) {
+	function createPubIds($galley, $article, $preview = false) {		
 		$pubIdPlugins =& PluginRegistry::loadCategory('pubIds', true, $article->getJournalId());
 		$pubIds = array();
 		foreach ($pubIdPlugins as $pubIdPlugin) {
@@ -305,11 +316,15 @@ class frontpageCreator {
 		$articleFileManager = new ArticleFileManager($articleId);
 		$articleFile = $articleFileManager->getFile($galley->_data['fileId']);
 		$fileToUpdate = $articleFileManager->filesDir .  $articleFileManager->fileStageToPath($articleFile->getFileStage()) . '/' . $articleFile->getFileName();
+		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
 		$newGalley = new ArticleGalley();
 		$newGalley->setLabel('PDF');
+		$newGalley->setFileType('application/pdf'); // important!
 		$newGalley->setArticleId($articleId);
 		$newGalley->setLocale($galley->getLocale());
-		$newGalley->setFileType('application/pdf'); // important!
+		$galleyDao->insertGalley($newGalley); // why now? because for our pubids we maybe need the galley-ID, and otheriwse we would not have it
+		$galleyItem->dirty = true;
+		
 		$pids = $this->createPubIds($newGalley, $article);
 		$this->log->log("created the folowing PIDs: " . print_r($pids,1));
 		$galleyItem->newGalley = $newGalley;
@@ -343,7 +358,7 @@ class frontpageCreator {
 			'pages'				=> $article->_data['pages'],
 			'pub_id'			=> $articleId,
 			'publisher'			=> $this->_noLineBreaks($journalSettings['publisherInstitution']  . ' ' . $this->_getLocalized($journalSettings['publisherNote'])),
-			'url'				=> Config::getVar('general', 'base_url') . '/' . $journalAbb . '/' . $articleId . '/' . $galley->getId(),
+			'url'				=> Config::getVar('general', 'base_url') . '/' . $journalAbb . '/' . $articleId . '/' . $newGalley->getId(),
 			'urn'				=> isset($pids['other::urnDNB']) ? $pids['other::urnDNB'] : (isset($pids['other::urn']) ? $pids['other::urn'] : ''), // take the URN created by the ojsde-dnburn pugin, if not present try the normla pkugins urn or set ###
 			'volume'			=> $issue->_data['volume'],
 			'year'				=> $issue->_data['year'],
@@ -362,6 +377,25 @@ class frontpageCreator {
 		return $pdfWorker;
 	}
 
+	/**
+	 * in case of an error while creating the frontpage, there would be created an empty galley. 
+	 * to prevent this, we run this function
+	 *
+	 */
+	public function removeUnfinishedGalleys() {
+		if (!$this->galleysToUpdate or !count($this->galleysToUpdate)) {
+			return;
+		}
+		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
+		foreach ($this->galleysToUpdate as $galleyItem) {
+			if ($galleyItem->dirty === true) {
+				$id = $galleyItem->newGalley->getId();
+				$galleyDao->deleteGalley($galleyItem->newGalley);
+				$galleyItem->dirty = false;
+				$this->log->warning('file could not be finished, temporary galley is removed: ' . $id);
+			}
+		}
+	}
 
 	/**
 	 * deleted whatever garbish was created on the way to the new frontmatter
