@@ -46,10 +46,9 @@ class daiPDF extends TCPDF {
 	}
 	
 	public function daiFrontpage() {
-		
-		// get unirScale
+	
+		// get unitScale
 		$k = $this->unitScale;
-		
 		
 		$this->ImageSVG(
 			"{$this->settings['files_path']}/dailogo.svg" /*$file*/, 
@@ -99,9 +98,10 @@ class daiPDF extends TCPDF {
 		$this->SetXY(20 * $k, $this->GetY() + 3.3 * $k);
 		$this->daiPrint($this->metadata['article_author'], '2');
 		$this->daiPrint($this->metadata['article_title'], '3');
-	
+		$longtitle = strlen($this->metadata['article_title']) > 190;
+		
 		// aus
-		$this->SetXY(20 * $k, $this->GetY() + ($this->smallMode ? 10 : 26));
+		$this->SetXY(20 * $k, $this->GetY() + (($this->smallMode or $longtitle) ? 10 : 26));
 		$this->daiPrintInfo('from', 1.5);
 	
 		// journal
@@ -115,7 +115,7 @@ class daiPDF extends TCPDF {
 		$this->daiPrintInfo('pages', 1.5);
 	
 		// aus
-		$this->SetXY(20 * $k, $this->GetY() + ($this->smallMode ? 11 : 28));
+		$this->SetXY(20 * $k, $this->GetY() + (($this->smallMode or $longtitle) ? 11 : 28));
 		$this->daiPrint('<a style="color:black;text-decoration:none" href="' . $this->metadata['url'] . '">' . $this->metadata['url'] . '</a><b style="color:rgb(128,130,133)"> / ' . $this->metadata['urn'] . '</b>');
 		$this->daiPrintInfo('editor');
 		$this->daiPrintInfo('journal_url');

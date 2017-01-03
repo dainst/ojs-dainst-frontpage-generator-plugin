@@ -175,7 +175,7 @@ namespace dfm {
 			
 			$pages = $replace ? "2-end" : "";
 			
-			$shell = "pdftk A=$newFrontpage B=$oldFile cat A B$pages output $tmpFile 2>&1"; // in production: $tmpFile == $oldFile
+			$shell = "pdftk A=$newFrontpage B=$oldFile cat A1 B$pages output $tmpFile 2>&1"; // in production: $tmpFile == $oldFile
 						
 			$this->logger->debug($shell);
 			
