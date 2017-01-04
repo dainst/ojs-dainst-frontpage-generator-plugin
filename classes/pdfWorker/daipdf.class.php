@@ -116,7 +116,7 @@ class daiPDF extends TCPDF {
 	
 		// aus
 		$this->SetXY(20 * $k, $this->GetY() + (($this->smallMode or $longtitle) ? 11 : 28));
-		$this->daiPrint('<a style="color:black;text-decoration:none" href="' . $this->metadata['url'] . '">' . $this->metadata['url'] . '</a><b style="color:rgb(128,130,133)"> / ' . $this->metadata['urn'] . '</b>');
+		$this->daiPrint('<a style="color:black;text-decoration:none" href="' . $this->metadata['url'] . '">' . $this->metadata['url'] . '</a><b style="color:black;text-decoration:none" href="http://nbn-resolving.de/' . $this->metadata['urn'] . '"> • ' . $this->metadata['urn'] . '</b>');
 		$this->daiPrintInfo('editor');
 		$this->daiPrintInfo('journal_url');
 		$this->daiPrintInfo('issn_online');
