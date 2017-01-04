@@ -12,7 +12,7 @@ class frontpageCreator {
 	*/
 	public $log; // logger object
 	
-	public $plugin; // the dfm pluign
+	public $plugin; // the dfm plugin
 	
 	public $tmp_path;
 	
@@ -29,15 +29,15 @@ class frontpageCreator {
 
 	
 	/**
-	 * This marvellous function extraordinaire does a fantastic job in creating in 
+	 * This marvelous function extraordinaire does a fantastic job in creating in 
 	 * doing the update of a pdf frontpage
 	 * 
-	 * it takes an id and a type as sendet by the plugin's form and 
+	 * it takes an id and a type as sent by the plugin's form and 
 	 * flushes the log.
 	 * 
 	 * 
 	 * 
-	 * @param <integer> $id - id of an object whose galleys shoould be updated
+	 * @param <integer> $id - id of an object whose galleys should be updated
 	 * @param <type> $type - type of that object: journal, article or galley
 	 * @return <bool|string> - true if success, as text message if error
 	 */
@@ -75,7 +75,7 @@ class frontpageCreator {
 
 	/**
 	 * collect all the OJS object we need later to make front matter and stuff
-	 * don't worry. being a messy is nothign crucial nowerdays and also we have pills and some gargabe collection
+	 * don't worry. being a messy is nothing crucial nowadays and also we have pills and some gargabe collection
 	 * 
 	 * @param <ArticleGalley|array:ArticleGalley> $galleys
 	 * @param <Article|integer> $article or $article-id
@@ -215,7 +215,7 @@ class frontpageCreator {
 	}
 	
 	/**
-	 * the more than awsome updating process itself wich will blow your mind with it's sheer awsomeness
+	 * the more than awesome updating process itself which will blow your mind with its sheer awwsomeness
 	 * 
 	 * 
 	 * @param unknown $galleyItem
@@ -239,7 +239,7 @@ class frontpageCreator {
 		// we can copy back the shiny and overwrite the old one...
 		$this->replaceFile($galleyItem, $tmpFile);
 
-		// log that marvellous success!
+		// log that marvelous success!
 		$logToken->text .= ' ... success!';
 		$logToken->type = 'success';
 	}
@@ -365,10 +365,10 @@ class frontpageCreator {
 			'urn'				=> isset($pids['other::urnDNB']) ? $pids['other::urnDNB'] : (isset($pids['other::urn']) ? $pids['other::urn'] : ''), // take the URN created by the ojsde-dnburn pugin, if not present try the normla pkugins urn or set ###
 			'volume'			=> $issue->_data['volume'],
 			'year'				=> $issue->_data['year'],
-			'zenon_id'			=> isset($pids['other::zenon']) ? $pids['other::zenon'] : '##'
+			'zenon_id'			=> '##'
 		);
 		
-		
+
 		if (isset($journalSettings['onlineIssn']) and $journalSettings['onlineIssn']) {
 			$meta['issn_online']= $journalSettings['onlineIssn'];
 		} elseif (isset($journalSettings['printIssn']) and $journalSettings['printIssn']) {
@@ -381,7 +381,7 @@ class frontpageCreator {
 	}
 
 	/**
-	 * in case of an error while creating the frontpage, there would be created an empty galley. 
+	 * in case of an error while creating the frontpage, an empty galley would be created. 
 	 * to prevent this, we run this function
 	 *
 	 */
