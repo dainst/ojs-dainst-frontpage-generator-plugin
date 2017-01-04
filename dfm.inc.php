@@ -137,19 +137,19 @@ class dfm extends GenericPlugin {
 	
 	
 	/* the function itself */ 
-	function startUpdateFrontpages($ids, $type, $is_cli = false) {	
+	function startUpdateFrontpages($ids, $type, $updateFrontpages = true, $is_cli = false) {	
 		require_once('classes/frontpageCreator.class.php');
 		$frontpageCreator = new frontpageCreator($this);
 		$ids = (!is_array($ids)) ? explode(',', $ids) : $ids;
 		foreach ($ids as $id) {
-			$success = $frontpageCreator->runFrontpageUpate((int) $id, $type);
+			$success = $frontpageCreator->runFrontpageUpate((int) $id, $type, $updateFrontpages);
 			if ($success !== true) { // case of error
 				echo $is_cli ? "ERROR: $success \n" : "<div class='alert alert-danger'>ERROR: $success</div>";
 				return;
 			}
 		}
 		
-		echo $is_cli ? "\nSUCCESS \n" .$frontpageCreator->log->dumpLog(true, true) : $frontpageCreator->log->dumpLog(true, false);
+		echo $is_cli ? "\nSUCCESS \n" . $frontpageCreator->log->dumpLog(true, true) : $frontpageCreator->log->dumpLog(true, false);
 	}
 	
 	/* helping hands */

@@ -16,10 +16,13 @@ class frontpageCreator {
 	
 	public $tmp_path;
 	
+	public $updateFrontpages = true; // if true first page will be exchanged, otherwise a front matter will be added
+	
 	function __construct($plugin) {
 		$this->plugin = $plugin;
 		require_once("pdfWorker/logger.class.php");
 		$this->log = new \sometools\logger();
+
 		
 		/*
 		error_reporting(E_ALL & ~ E_DEPRECATED);
@@ -41,9 +44,13 @@ class frontpageCreator {
 	 * @param <type> $type - type of that object: journal, article or galley
 	 * @return <bool|string> - true if success, as text message if error
 	 */
-	function runFrontpageUpate($id, $type) {
+	function runFrontpageUpate($id, $type, $updateFrontpages = true) {
 		
 		try {
+			
+			// update or replace fm
+			$this->updateFrontpages = $updateFrontpages;
+			$this->log->log($updateFrontpages ? 'replace front matter mode' : 'add front matter mode');
 			
 			// get and clean tmpFolder
 			$this->tmp_path = Config::getVar('dainst', 'tmpPath');
@@ -230,7 +237,7 @@ class frontpageCreator {
 		$newFrontmatterFile = $pdfWorker->createFrontPage();	
 
 		// attach frontpage to file
-		$tmpFile = $pdfWorker->updateFrontpage($pdfWorker->fileToUpdate, $newFrontmatterFile);
+		$tmpFile = $pdfWorker->updateFrontpage($pdfWorker->fileToUpdate, $newFrontmatterFile, $this->updateFrontpages);
 
 		// update pdf metadata
 		$tmpFile = $pdfWorker->updatePDFMetadata($tmpFile);
@@ -365,7 +372,7 @@ class frontpageCreator {
 			'urn'				=> isset($pids['other::urnDNB']) ? $pids['other::urnDNB'] : (isset($pids['other::urn']) ? $pids['other::urn'] : ''), // take the URN created by the ojsde-dnburn pugin, if not present try the normla pkugins urn or set ###
 			'volume'			=> $issue->_data['volume'],
 			'year'				=> $issue->_data['year'],
-			'zenon_id'			=> '##'
+			'zenon_id'			=> isset($pids['other::zenon']) ? $pids['other::zenon'] : '##'
 		);
 		
 

@@ -28,14 +28,16 @@ class selectToReFreshForm extends Form {
 	}
 	
 	function execute() {
-		return  $this->_plugin->startUpdateFrontpages($this->getData('id'), $this->getData('type'));	
+		return  $this->_plugin->startUpdateFrontpages($this->getData('id'), $this->getData('type'), $this->getData('replace'));	
 	}
 	
 	function readInputData() {
 		$vars = array(
 			'id' => "int",
-			'type' => array('galley', 'article', 'journal')
+			'type' => array('galley', 'article', 'journal'),
+			'replace' => 'bool'
 		);
+		
 		foreach ($vars as $k => $type) {
 			$v = Request::getUserVar($k);
 			if ($type == "int") {
@@ -44,7 +46,9 @@ class selectToReFreshForm extends Form {
 			if (is_array($type)) {
 				$v = (in_array($v, $type)) ? $v : null;
 			}
-			
+			if ($type == "bool") {
+				$v = $v == "on";
+			}
 			if ($v !== null) {
 				$this->setData($k, $v);
 			}

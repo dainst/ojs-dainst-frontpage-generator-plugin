@@ -4,8 +4,7 @@
  * 
  * 
  */
-error_reporting(E_ALL & ~E_NOTICE);
-ini_set('display_errors', 'off');
+
 /*
 error_reporting(E_ALL);
 ini_set('display_errors', 'on');
@@ -54,11 +53,10 @@ class dfmcli extends CommandLineTool {
 	
 	function go() {
 		$plugin = PluginRegistry::getPlugin('generic', 'dfm');
-		$plugin->startUpdateFrontpages($this->idlist, $this->type, true);
+		$plugin->startUpdateFrontpages($this->idlist, $this->type, $this->command == 'update', true);
 	}
 	
 
-	
 	function __destruct() {
 		echo "\n";
 	}
