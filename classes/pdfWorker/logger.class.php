@@ -91,26 +91,34 @@ namespace sometools {
 			}
 		}
 		
-		function dump() {
-			return implode("\n", $this->log);
-		}
-		
 		function getWarnings() {
 			return array_filter($this->log, function($a) {
 				return (in_array($a->type, array('warning', 'error', 'danger')));
 			});
 		}
 		
-		function dumpWarnings() {
+		function dumpWarnings($return = false, $text = false) {
+			ob_start();
 			foreach ($this->getWarnings() as $warning) {
-				$warning->dump();
+				$warning->dump($text);
 			}
+			$dump = ob_get_clean();
+			if (!$return) {
+				echo $dump;
+			}
+			return $dump;
 		}
 		
-		function dumpLog() {
+		function dumpLog($return = false, $text = false) {
+			ob_start();
 			foreach ($this->log as $entry) {
-				$entry->dump();
+				$entry->dump($text);
 			}
+			$dump = ob_get_clean();
+			if (!$return) {
+				echo $dump;
+			}
+			return $dump;
 		}
 		
 	}
@@ -125,7 +133,20 @@ namespace sometools {
 			return $this->text;
 		}
 		
-		public function dump() {
+		public function dumpTEXT() {
+			$t = ($this->timestamp) ? str_pad($this->timestamp, 18, '0', STR_PAD_RIGHT) : '';
+			$a = str_pad($this->type, 12, ' ', STR_PAD_RIGHT);
+			echo "\n$t $a {$this->text}";
+			if ($this->debuginfo) {
+				echo "\n{$this->debuginfo}";
+			}
+		}
+		
+		public function dump($text = false) {
+			if ($text) {
+				return $this->dumpTEXT();
+			}
+			
 			$t = ($this->timestamp) ? "<span class='timestamp'>" . str_pad($this->timestamp, 18, '0', STR_PAD_RIGHT) . "</span>" : '';
 			echo "<div class='alert alert-{$this->type}'>$t{$this->text}</div>";
 			if ($this->debuginfo) {

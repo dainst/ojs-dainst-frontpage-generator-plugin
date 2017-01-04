@@ -28,7 +28,7 @@ class selectToReFreshForm extends Form {
 	}
 	
 	function execute() {
-		return  $this->_plugin->startUpdateFrontapges($this->getData('id'), $this->getData('type'));	
+		return  $this->_plugin->startUpdateFrontpages($this->getData('id'), $this->getData('type'));	
 	}
 	
 	function readInputData() {

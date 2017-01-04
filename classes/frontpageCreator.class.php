@@ -39,9 +39,9 @@ class frontpageCreator {
 	 * 
 	 * @param <integer> $id - id of an object whose galleys shoould be updated
 	 * @param <type> $type - type of that object: journal, article or galley
+	 * @return <bool|string> - true if success, as text message if error
 	 */
 	function runFrontpageUpate($id, $type) {
-		
 		
 		try {
 			
@@ -64,12 +64,12 @@ class frontpageCreator {
 			$this->processList();
 	
 		} catch (Exception $e) {
-			echo "<div class='alert alert-danger'>ERROR: " . $e->getMessage() . "</div>";
+			return $e->getMessage();
 		}
 		
 		$this->removeUnfinishedGalleys();
 		
-		$this->log->dumpLog();
+		return true;
 	}
 	
 
@@ -268,14 +268,15 @@ class frontpageCreator {
 		
 		$user = Request::getUser();
 		import('classes.article.log.ArticleLog');
+
 		ArticleLog::logEventHeadless(
 			$journal, 
-			$user->getId(),
+			!is_null($user) ? $user->getId() : '', // if cli, user is not given
 			$article,
 			ARTICLE_LOG_TYPE_DEFAULT,
 			'plugins.generic.dainstFrontmatter.updated',
 			array(
-				'userName' => $user->getFullName(),
+				'userName' => !is_null($user) ? $user->getFullName() : 'cli',
 				'articleId' => $article->getId()
 			)
 		);
@@ -351,7 +352,7 @@ class frontpageCreator {
 		$this->log->log('using controller ' . $class);
 		
 		// fill it with data
-		$meta = array(
+		@$meta = array(
 			'article_author'	=> $this->_noDoubleSpaces($article->getAuthorString(false, ' – ')),
 			'article_title'		=> $this->_getLocalized($article->_data['title']),
 			'editor'			=> '<br>' . $this->_noLineBreaks($journalSettings['contactName'] . ' ' . $this->_getLocalized($journalSettings['contactAffiliation'])),
@@ -364,7 +365,7 @@ class frontpageCreator {
 			'urn'				=> isset($pids['other::urnDNB']) ? $pids['other::urnDNB'] : (isset($pids['other::urn']) ? $pids['other::urn'] : ''), // take the URN created by the ojsde-dnburn pugin, if not present try the normla pkugins urn or set ###
 			'volume'			=> $issue->_data['volume'],
 			'year'				=> $issue->_data['year'],
-			'zenon_id'			=> '##'
+			'zenon_id'			=> isset($pids['other::zenon']) ? $pids['other::zenon'] : '##'
 		);
 		
 		
@@ -421,6 +422,9 @@ class frontpageCreator {
 	 * @return <string>
 	 */
 	private function _getLocalized($array) {
+		if (!is_array($array)) {
+			return $array;
+		}
 		$default = AppLocale::getPrimaryLocale();
 		return isset($array[$default]) ? $array[$default] : array_pop($array);
 	}
