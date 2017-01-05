@@ -145,6 +145,7 @@ class dfm extends GenericPlugin {
 			$success = $frontpageCreator->runFrontpageUpate((int) $id, $type, $updateFrontpages);
 			if ($success !== true) { // case of error
 				echo $is_cli ? "ERROR: $success \n" : "<div class='alert alert-danger'>ERROR: $success</div>";
+				echo $frontpageCreator->log->dumpLog(true, false);
 				return;
 			}
 		}

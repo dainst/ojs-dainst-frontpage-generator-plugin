@@ -19,7 +19,7 @@ class dfmcli extends CommandLineTool {
 	var $type;
 	var $idlist;	
 	var $commands = array('update', 'add');
-	var $types = array('galley', 'article', 'journal');
+	var $types = array('galley', 'article', 'journal', 'missing');
 	
 
 	/**

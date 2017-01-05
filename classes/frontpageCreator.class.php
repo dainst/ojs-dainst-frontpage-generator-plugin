@@ -4,7 +4,8 @@ class frontpageCreator {
 	public $galleysToUpdate = []; 
 	/* contains arrays in the form of: 
 		{
-			'galley': <ArticleGalley>, 
+			'galley': <ArticleGalley>,
+			'newGalley': <ArticleGalley>,  
 			'article': <Article>, 
 			'journal': <Journal>,
 			'dirty': <boolean> (when galley is created but file is missing)
@@ -41,7 +42,7 @@ class frontpageCreator {
 	 * 
 	 * 
 	 * @param <integer> $id - id of an object whose galleys should be updated
-	 * @param <type> $type - type of that object: journal, article or galley
+	 * @param <type> $type - type of that object: journal, article or galley (or missing)
 	 * @return <bool|string> - true if success, as text message if error
 	 */
 	function runFrontpageUpate($id, $type, $updateFrontpages = true) {
@@ -59,7 +60,7 @@ class frontpageCreator {
 				throw new \Exception("No proper tmp path defined: " . $this->tmpPath);
 			}
 			$this->cleanTmpFolder();
-
+			
 			// get items to update and do it
 			if ($type == "journal") {
 				$this->getJournalGalleys($id);
@@ -67,14 +68,19 @@ class frontpageCreator {
 				$this->getArticleGalleys($id);
 			} elseif ($type == "galley") {
 				$this->getGalley($id);
+			} elseif ($type == "missing") {
+				$this->getMissing();
 			}
-			$this->processList();
+			$this->processList($type == "missing");
+			
+
 	
 		} catch (Exception $e) {
 			return $e->getMessage();
 		}
 		
 		$this->removeUnfinishedGalleys();
+		
 		
 		return true;
 	}
@@ -208,26 +214,53 @@ class frontpageCreator {
 	}
 	
 	/**
-	 * runs over the List of registewred galleys ($this->galleysToUpdate) and updates them
 	 * 
-	 * @throws Exception
+	 * get all articles galley wich are flaggged as missing in the zenon-id (the importer does that)
+	 * 
+	 * we misuse the zenonId-field to flag articles in the importer wich need to get an cover
+	 * 
 	 */
-	function processList() {
-		if (!$this->galleysToUpdate or !count($this->galleysToUpdate)) {
-			throw new Exception("no galleys given");
-		}
-		foreach ($this->galleysToUpdate as $galleyItem) {
-			$this->processItem($galleyItem);
+	function getMissing() {
+		$articleDao =& DAORegistry::getDAO('ArticleDAO');
+		$sql = "SELECT * FROM article_settings WHERE setting_name = 'pub-id::other::zenon' and  setting_value like '%&dfm'";
+		$blub = $articleDao->retrieve($sql);
+		$result = new DAOResultFactory($blub, $this, '_dummy');
+		$result = $result->toArray();
+		foreach ($result as $record) {
+			$this->getArticleGalleys($record['article_id']);
 		}
 	}
 	
 	/**
-	 * the more than awesome updating process itself which will blow your mind with its sheer awwsomeness
+	 * needed by DAOResultFactory above
+	 */
+	function _dummy($row) {
+		return $row;
+	} 
+	
+	/**
+	 * runs over the list of registered galleys ($this->galleysToUpdate) and updates them
 	 * 
+	 * @param <bool> $removeMarker - if true, update the article to remove need-no-frontmatter-marker
+	 * @throws Exception
+	 */
+	function processList($removeMarker = false) {
+		if (!$this->galleysToUpdate or !count($this->galleysToUpdate)) {
+			throw new Exception("no galleys given");
+		}
+		foreach ($this->galleysToUpdate as $galleyItem) {
+			$this->log->log('next item: ' . $this->_getLocalized($galleyItem->article->getTitle()));
+			$this->processItem($galleyItem, $removeMarker);
+		}
+	}
+	
+	/**
+	 * the more than awesome updating process itself which will blow your mind with its sheer awesomeness
 	 * 
+	 * @param <bool> $removeMarker - if true, update the article to remove need-no-frontmatter-marker
 	 * @param unknown $galleyItem
 	 */
-	function processItem($galleyItem) {
+	function processItem($galleyItem, $removeMarker = false) {
 		$logToken = &$this->log->log('update galley "' . $galleyItem->galley->getLabel() . '" of article "' . $galleyItem->article->getArticleTitle() . '"');
 
 		// get journalController
@@ -245,6 +278,11 @@ class frontpageCreator {
 		// now that everythings seems to have worked (otherwise we would not be here but in an exception handler hopefully),
 		// we can copy back the shiny and overwrite the old one...
 		$this->replaceFile($galleyItem, $tmpFile);
+		
+		// if removeMarker is set (we come from the importer most likely)
+		if ($removeMarker) {
+			$this->removeMarker($galleyItem);
+		}
 
 		// log that marvelous success!
 		$logToken->text .= ' ... success!';
@@ -289,7 +327,36 @@ class frontpageCreator {
 		);
 	}
 
+	function removeMarker($galleyItem) {
+		$article = $galleyItem->article;
+		$articleDao =& DAORegistry::getDAO('ArticleDAO');
+		
+		$zenonId = $article->getStoredPubId('other::zenon');
+		
+		if (!$zenonId or !strstr($zenonId, '&dfm')) {
+			$this->log->log('nothing marker to remove: ' . $zenonId);
+			return;
+		}
+		
+		$zenonId = str_replace('&dfm', '', $zenonId);
+		
+		$article->setStoredPubId('other::zenon',$zenonId);
+		
+		$articleDao->updateSetting($article->getId(), 'pub-id::other::zenon', $zenonId, 'string');
+
+		$this->log->log('marker removed');
+		
+	}
 	
+	
+	
+	/**
+	 * creates pubIds fro all availabe plugins! 
+	 * @param unknown $galley
+	 * @param unknown $article
+	 * @param string $preview
+	 * @return multitype:NULL
+	 */	
 	function createPubIds($galley, $article, $preview = false) {		
 		$pubIdPlugins =& PluginRegistry::loadCategory('pubIds', true, $article->getJournalId());
 		$pubIds = array();
