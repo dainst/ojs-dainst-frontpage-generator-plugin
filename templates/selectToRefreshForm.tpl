@@ -15,7 +15,7 @@
 <textarea id="dfm_urlslist" name="id" class='dfmTextrea'></textarea>
 <p>{translate key="article.plugins.generic.dainstFrontmatter.idsAre"}</p>
 <input type="radio" name="type" value="galley" id="type1"><label for="type1">Galley</label><br>
-<input type="radio" name="type" value="article" id="type2" selected="selected"><label for="type2">Article</label><br>
+<input type="radio" name="type" value="article" id="type2" selected="selected"><label for="type2">Article</label> <p>{translate key="article.plugins.generic.dainstFrontmatter.articlealert"}</p><br>
 <input type="radio" name="type" value="journal" id="type3"><label for="type3">Journal</label><br>
 <br/>
 <input type="checkbox" name="replace" checked="checked" id="checkReplace"><label for="checkReplace">{translate key="article.plugins.generic.dainstFrontmatter.button.replace"}</label><br>
