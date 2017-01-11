@@ -112,12 +112,12 @@ class frontpageCreator {
 				$this->log->warning("galley skipped, no pdf galley");
 				continue;
 			}
-			
+			/*
 			if ($galley->_data['fileStage'] != 7) {
 				$this->log->warning("galley skipped, not public");
 				continue;
 			}
-			
+			*/
 			// make sure we have an article, else: get it
 			if (is_numeric($article)) {
 				$article = $this->getArticle($article);
@@ -222,7 +222,7 @@ class frontpageCreator {
 	 */
 	function getMissing() {
 		$articleDao =& DAORegistry::getDAO('ArticleDAO');
-		$sql = "SELECT * FROM article_settings WHERE setting_name = 'pub-id::other::zenon' and  setting_value like '%&dfm'";
+		$sql = "SELECT * FROM articles WHERE pages like '%#DFM'";
 		$blub = $articleDao->retrieve($sql);
 		$result = new DAOResultFactory($blub, $this, '_dummy');
 		$result = $result->toArray();
@@ -331,18 +331,16 @@ class frontpageCreator {
 		$article = $galleyItem->article;
 		$articleDao =& DAORegistry::getDAO('ArticleDAO');
 		
-		$zenonId = $article->getStoredPubId('other::zenon');
+		$pages = $article->getPages();
 		
-		if (!$zenonId or !strstr($zenonId, '&dfm')) {
-			$this->log->log('nothing marker to remove: ' . $zenonId);
+		if (!$pages or !strstr($pages, '#DFM')) {
+			$this->log->log('no marker to remove: ' . $pages);
 			return;
 		}
-		
-		$zenonId = str_replace('&dfm', '', $zenonId);
-		
-		$article->setStoredPubId('other::zenon',$zenonId);
-		
-		$articleDao->updateSetting($article->getId(), 'pub-id::other::zenon', $zenonId, 'string');
+
+		$article->setPages(str_replace('#DFM', '', $pages));
+
+		$articleDao->updateArticle($article);
 
 		$this->log->log('marker removed');
 		
@@ -432,7 +430,7 @@ class frontpageCreator {
 			'editor'			=> '<br>' . $this->_noLineBreaks($journalSettings['contactName'] . ' ' . $this->_getLocalized($journalSettings['contactAffiliation'])),
 			'journal_title'		=> $this->_getLocalized($journalSettings['title']), 
 			'journal_url'		=> Config::getVar('general', 'base_url') . '/' . $journalAbb,
-			'pages'				=> $article->_data['pages'],
+			'pages'				=> str_replace('#DFM', '', $article->_data['pages']),
 			'pub_id'			=> $articleId,
 			'publisher'			=> $this->_noLineBreaks($journalSettings['publisherInstitution']  . ' ' . $this->_getLocalized($journalSettings['publisherNote'])),
 			'url'				=> Config::getVar('general', 'base_url') . '/' . $journalAbb . '/' . $articleId . '/' . $newGalley->getId(),
