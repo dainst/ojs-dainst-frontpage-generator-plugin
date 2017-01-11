@@ -10,7 +10,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 'on');
 //*/
 
-require(realpath(dirname(__FILE__) . '/../../../') . '/tools/bootstrap.inc.php');
+require('tools/bootstrap.inc.php');
 
 class dfmcli extends CommandLineTool {
 	
