@@ -98,7 +98,7 @@ class daiPDF extends TCPDF {
 		$this->SetXY(20 * $k, $this->GetY() + 3.3 * $k);
 		$this->daiPrint($this->metadata['article_author'], '2');
 		$this->daiPrint($this->metadata['article_title'], '3');
-		$longtitle = strlen($this->metadata['article_title']) > 190;
+		$longtitle = strlen($this->metadata['article_title']) > 95;
 		
 		// aus
 		$this->SetXY(20 * $k, $this->GetY() + (($this->smallMode or $longtitle) ? 10 : 26));
