@@ -1,7 +1,7 @@
 % !TEX TS-program = lualatex
 \documentclass[fontsize=9pt,english,ngerman]{scrartcl}
 \usepackage{fontspec}
-\usepackage{xcolor,microtype}
+\usepackage{xcolor,microtype,etoolbox}
 \usepackage{babel}
 \usepackage{ragged2e}
 \raggedbottom
@@ -50,7 +50,8 @@
   \else \def\issn{{\color{red}{?ISSN?}}} \fi
 
 \ifdefined\issnonline\providecommand\issnonline[1]{#1}
-  \else \def\issnonline{{\color{red}{?ISSN online?}}} \fi
+ \def\issnonlinetag{\issntagonline \mysep \eng{\issntagonline} \mybf{\issnonline}\\}
+  \else \def\issnonlinetag{} \fi
 
 \ifdefined\journalurl\providecommand\journalurl[1]{\href{#1}{#1}}
   \else \def\journalurl{{\color{red}{?Zeitschriften-Link?}}} \fi
@@ -89,7 +90,7 @@
 \editortag \mysep \eng{\editortag} \mybf{\editor}\\ 
 \journalurltag \mysep \eng{\journalurltag} \mybf{\journalurl}\\
 \issntag \mysep \eng{\issntag} \mybf{\issn}\\
-\issntagonline \mysep \eng{\issntagonline} \mybf{\issnonline}\\
+\issnonlinetag
 \publishertag \mysep \eng{\publishertag} \mybf{\publisher}
 
 \copyright\,\the\year{} \copyrightdai\\[1em]
