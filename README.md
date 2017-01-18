@@ -9,6 +9,7 @@ tcpdf
 Version: 2.4.8
 
 @Need the following programms:
+* TeX / LuaLaTeX
 * pdftk
 * exiftools
 
