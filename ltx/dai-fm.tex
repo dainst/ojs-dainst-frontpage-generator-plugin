@@ -18,7 +18,7 @@
 \usepackage{hyperref}
 \pagestyle{empty}
 \input{definitions}
- \input{definitionstest}
+% \input{definitionstest}
 
 
 \ifdefined\arttitle \providecommand\arttitle[1]{#1} % Titel
@@ -70,27 +70,24 @@
 \electronicpublication
 \hfill\includegraphics[width=4cm]{logo}\\
 
-\digitaloffprint \mysep\eng{\digitaloffprint}\\[2em]
+\entry{\digitaloffprint}{}\\[2em]
 {\huge\artauthor\\[.5em]
 \mybf{\arttitle}}{}\\[6em]
 
-\from \mysep \eng{\from}
+\entry{\from}{}
 
 {\huge\mybf{\journal}\\
 \journalsubtitle\\[3em]}
 
-\issuetag \mysep \eng{\issuetag} \mybf{\issue{} {$\bullet$} \yearpub}\hfill\purl\\
-\pagestag \mysep \eng{\pagestag} \mybf{\pages}\hfill urn: \urn\\[1em]
-% internet: \purl\\
-% urn: \urn
+\entry{\issuetag}{\issue} {$\bullet$} \mybf{\yearpub}\hfill\purl\\
+\entry{\pagestag}{\pages}\hfill urn: \urn\\[1em]
 \vfill
-
 \begin{footnotesize}
-\editortag \mysep \eng{\editortag} \mybf{\editor}\\ 
-\journalurltag \mysep \eng{\journalurltag} \mybf{\journalurl}\\
-\issntag \mysep \eng{\issntag} \mybf{\issn}\\
+\entry{\editortag}{\editor}\\
+\entry{\journalurltag}{\journalurl}\\
+\entry{\issntag}{\issn}\\
 \issnonlinetag
-\publishertag \mysep \eng{\publishertag} \mybf{\publisher}\\[1em]
+\entry{\publishertag}{\publisher}\\[1em]
 
 \copyright\,\the\year{} \copyrightdai\\[1em]
 \terms\\[1em]
