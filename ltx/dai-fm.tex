@@ -1,0 +1,70 @@
+% !TEX TS-program = lualatex
+\documentclass[fontsize=9pt,english,ngerman]{scrartcl}
+\usepackage{fontspec}
+\usepackage{xcolor,microtype}
+\usepackage{babel}
+\usepackage{ragged2e}
+\raggedbottom
+%\usepackage{setspace}
+% \usepackage{libertine}
+\renewcommand\familydefault{\sfdefault}
+\usepackage{xspace,graphicx} % Bilder einbinden
+\usepackage{epstopdf} %converting to PDF
+\usepackage[
+  a4paper,
+  left=2.50cm, 
+  right=2.50cm, 
+  top=2.50cm, 
+  bottom=2.70cm,
+  ]{geometry}
+\usepackage{hyperref}
+\pagestyle{empty}
+\input{definitions}
+\renewcommand\title[1]{#1} % Titel
+\renewcommand\author[1]{#1} % Autor
+\newcommand\journal[1]{#1} % Zeitschrift
+\newcommand\journalsubtitle[1]{#1} % Zeitschrift
+\newcommand\urn[1]{\href{https://nbn-resolving.org/#1}{#1}} % urn
+\newcommand\purl[1]{\url{#1}} % link
+\newcommand\pages[1]{#1} % Seiten
+\newcommand\yearpub[1]{#1}
+\newcommand\issn[1]{#1}
+\newcommand\issnonline[1]{#1}
+\newcommand\journalurl[1]{\href{#1}{#1}}
+\newcommand\editor[1]{#1}
+\newcommand\issue[1]{#1} % Ausgabe
+\newcommand\publisher[1]{#1}
+
+%\input{definitionstest}
+
+\begin{document}
+\RaggedRight
+\hfill\includegraphics[width=4cm]{logo}\\
+
+\digitaloffprint \mysep\eng{\digitaloffprint}\\[2em]
+{\huge\author~\\[.5em]
+\huge\mybf{\title}}{}\\[6em]
+
+\from \mysep \eng{\from}
+
+{\huge\mybf{\journal}~\\[.5em]
+\huge\journalsubtitle~\\[6em]}
+
+\issuetag \mysep \eng{\issuetag} \mybf{\issue{} {$\bullet$} \yearpub}\hfill\purl {}\\
+\pagestag \mysep \eng{\pagestag} \mybf{\pages}\hfill urn: \urn ~\\
+% internet: \purl\\
+% urn: \urn
+\vfill
+
+\begin{footnotesize}
+\editortag \mysep \eng{\editortag} \mybf{\editor}\\ 
+\journalurltag \mysep \eng{\journalurltag} \mybf{\journalurl~}\\
+\issntag \mysep \eng{\issntag} \mybf{\issn}\\
+\issntagonline \mysep \eng{\issntagonline} \mybf{\issnonline}\\
+\publishertag \mysep \eng{\publishertag} \mybf{\publisher}
+
+\copyright\,\the\year{} \copyrightdai\\[1em]
+\terms\\[1em]
+\eng{\terms}\\
+\end{footnotesize}
+\end{document}
