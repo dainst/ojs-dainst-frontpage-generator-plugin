@@ -1,10 +1,11 @@
 % !TEX TS-program = lualatex
 \documentclass[fontsize=9pt,english,ngerman]{scrartcl}
 \usepackage{fontspec}
-\usepackage{xcolor,microtype}
+\usepackage[sfdefault]{AlegreyaSans}
+\usepackage{calc}
+\usepackage{xcolor}
 \usepackage{babel}
-\usepackage{ragged2e}
-\raggedbottom
+\usepackage{ragged2e,microtype}
 \renewcommand\familydefault{\sfdefault}
 \usepackage{xspace,graphicx} % Bilder einbinden
 \usepackage{epstopdf} %converting to PDF
@@ -65,12 +66,19 @@
   \else \def\publisher{{\color{red}{?Verlag?}}} \fi
 
 
-\begin{document}
-\RaggedRight
-\electronicpublication
-\hfill\includegraphics[width=4cm]{logo}\\
 
-\entry{\digitaloffprint}{}\\[2em]
+\begin{document}
+\begin{flushright}
+\includegraphics[width=3cm]{dailogo}\hspace*{1.9cm}%
+{\tiny\href{https://publications.dainst.org}{https://publications.dainst.org}}\\[-.2em]
+\myrule\\[.5em]
+{\fontsize{30}{10}\selectfont iDAI.publications}\\
+\myrule\\[.5em]
+{\scshape elektronische publikationen des\\ deutschen archäologischen instituts}
+\end{flushright}
+\RaggedRight
+\vspace*{4em}
+\entry{\digitaloffprint}{}\\[1em]
 {\huge\artauthor\\[.5em]
 \mybf{\arttitle}}{}\\[6em]
 
