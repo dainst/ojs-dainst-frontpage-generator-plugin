@@ -5,6 +5,7 @@
 \usepackage{calc}
 \usepackage{xcolor}
 \usepackage{babel}
+\usepackage{pdfpages}
 \usepackage{ragged2e,microtype}
 \renewcommand\familydefault{\sfdefault}
 \usepackage{xspace,graphicx} % Bilder einbinden
@@ -65,6 +66,10 @@
 \ifdefined\publisher\providecommand\publisher[1]{#1}
   \else \def\publisher{{\color{red}{?Verlag?}}} \fi
 
+%\undef\inputpdf{}
+\ifdefined\inputpdf\providecommand\inputpdf[1]{#1}
+  \def\inputcmd{\clearpage\includepdf[scale=1,pages=1-]{\inputpdf}}
+  \else \def\inputcmd{} \fi
 
 
 \begin{document}
@@ -80,7 +85,7 @@
 \vspace*{4em}
 \entry{\digitaloffprint}{}\\[1em]
 {\huge\artauthor\\[.5em]
-\mybf{\arttitle}}{}\\[6em]
+\mybf{\arttitle}}\\[6em]
 
 \entry{\from}{}
 
@@ -100,5 +105,5 @@
 \copyright\,\the\year{} \copyrightdai\\[1em]
 \terms\\[1em]
 \eng{\terms}\\
-\end{footnotesize}
+\end{footnotesize}\inputcmd
 \end{document}
