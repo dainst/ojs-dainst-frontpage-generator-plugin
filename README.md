@@ -38,3 +38,4 @@ Defined by `\def\CMD{CONTENT}`
 -  `\def\issue{ISSUE}`
 -  `\def\publisher{PUBLISHER}`
 -  `\def\inputpdf{PATH TO PDF WHICH SHOULD BE INCLUDED}`
+-  `\def\lang{SPRACHE}` (in RFC 3066 - http://www.i18nguy.com/unicode/language-identifiers.html)
