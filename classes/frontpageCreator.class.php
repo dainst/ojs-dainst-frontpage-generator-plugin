@@ -303,7 +303,7 @@ class frontpageCreator {
 		$articleFileManager = new ArticleFileManager($article->getId());
 		$fileId = $articleFileManager->copyPublicFile($newFile, 'application/pdf');
 		if ($fileId == 0) {
-			thorw new Exception("article " . $article->getId() . ": new file could not be copied!");
+			throw new Exception("article " . $article->getId() . ": new file could not be copied!");
 		}
 		$newGalley->setFileId($fileId);	
 		$newGalley->setSequence(0);
