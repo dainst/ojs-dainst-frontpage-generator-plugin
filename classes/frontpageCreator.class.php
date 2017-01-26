@@ -72,7 +72,6 @@ class frontpageCreator {
 				$this->getMissing();
 			}
 			$this->processList($type == "missing");
-			
 
 	
 		} catch (Exception $e) {
@@ -312,6 +311,7 @@ class frontpageCreator {
 		$galleyDao->updateGalley($newGalley);
 
 		$galleyItem->dirty = false;
+		$articleFileManager->deleteFile($oldGalley->getFileId());
 		$galleyDao->deleteGalley($oldGalley);
 		
 		$user = Request::getUser();
