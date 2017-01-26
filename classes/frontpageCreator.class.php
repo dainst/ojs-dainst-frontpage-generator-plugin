@@ -302,6 +302,10 @@ class frontpageCreator {
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($article->getId());
 		$fileId = $articleFileManager->copyPublicFile($newFile, 'application/pdf');
+		if ($fileId == 0) {
+			$this->log->warning("article " . $article->getId() . ": new file could not be copied!");
+			return;
+		}
 		$newGalley->setFileId($fileId);	
 		$newGalley->setSequence(0);
 		$newGalley->setFileType('application/pdf'); // important!
