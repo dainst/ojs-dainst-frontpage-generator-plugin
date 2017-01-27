@@ -364,6 +364,12 @@ class frontpageCreator {
 		foreach ($pubIdPlugins as $pubIdPlugin) {
 			$pubIdType = $pubIdPlugin->getPubIdType();
 			$pubIds[$pubIdType] = $pubIdPlugin->getPubId($galley, $preview);
+			$pubIdsArticle[$pubIdType] = $pubIdPlugin->getPubId($article, $preview);
+		}
+		foreach ($pubIds as $pubIdType => $value) {
+			if (!$value and isset($pubIdsArticle[$pubIdType])) {
+				$pubIds[$pubIdType] = $pubIdsArticle[$pubIdType];
+			}
 		}
 		return $pubIds;
 	}
@@ -442,7 +448,6 @@ class frontpageCreator {
 			'year'				=> $issue->_data['year'],
 			'zenon_id'			=> isset($pids['other::zenon']) ? $pids['other::zenon'] : '##'
 		);
-		
 
 		if (isset($journalSettings['onlineIssn']) and $journalSettings['onlineIssn']) {
 			$meta['issn_online']= $journalSettings['onlineIssn'];
