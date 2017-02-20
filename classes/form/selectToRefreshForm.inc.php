@@ -33,7 +33,7 @@ class selectToReFreshForm extends Form {
 	
 	function readInputData() {
 		$vars = array(
-			'id' => "int",
+			'id' => "str",
 			'type' => array('galley', 'article', 'journal'),
 			'replace' => 'bool'
 		);

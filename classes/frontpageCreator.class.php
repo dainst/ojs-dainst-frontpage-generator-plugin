@@ -45,8 +45,8 @@ class frontpageCreator {
 	 * @param <type> $type - type of that object: journal, article or galley (or missing)
 	 * @return <bool|string> - true if success, as text message if error
 	 */
-	function runFrontpageUpate($id, $type, $updateFrontpages = true) {
-		
+	function runFrontpageUpate($ids, $type, $updateFrontpages = true) {
+
 		try {
 			
 			// update or replace fm
@@ -60,15 +60,23 @@ class frontpageCreator {
 				throw new \Exception("No proper tmp path defined: " . $this->tmpPath);
 			}
 			$this->cleanTmpFolder();
-			
+
+			// idlist
+			$ids = !is_array($ids) ? array($ids): $ids;
+			$this->log->log("Ids of type $type:" . implode($ids, ', '));
+
 			// get items to update and do it
-			if ($type == "journal") {
-				$this->getJournalGalleys($id);
-			} elseif ($type == "article") {
-				$this->getArticleGalleys($id);
-			} elseif ($type == "galley") {
-				$this->getGalley($id);
-			} elseif ($type == "missing") {
+			foreach ($ids as $id) {
+				if ($type == "journal") {
+					$this->getJournalGalleys($id);
+				} elseif ($type == "article") {
+					$this->getArticleGalleys($id);
+				} elseif ($type == "galley") {
+					$this->getGalley($id);
+				}
+			}
+
+			if ($type == "missing") {
 				$this->getMissing();
 			}
 			$this->processList($type == "missing");
