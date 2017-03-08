@@ -28,12 +28,25 @@ namespace sometools {
 		/**
 		 * stores a warning
 		 * 
-		 * this a kind of an error wich does not abort the process, and should be displayed to the USER
+		 * this a kind of an error wich does not abort the process, and should be displayed to the user
 		 * 
 		 * @param <string> $string
 		 */
 		function warning($string) {
 			return  $this->_pushlog($string, 'warning');
+		}
+
+		/**
+		 * stores an error
+		 *
+		 * usually stops the process
+		 * is shown to user
+		 *
+		 *
+		 * @param <string> $string
+		 */
+		function error($string) {
+			return  $this->_pushlog($string, 'danger');
 		}
 		
 		/**

@@ -18,7 +18,7 @@ class dfmcli extends CommandLineTool {
 	var $command;
 	var $type;
 	var $idlist;	
-	var $commands = array('update', 'add');
+	var $commands = array('update', 'add', 'test');
 	var $types = array('galley', 'article', 'journal', 'missing');
 	
 
@@ -33,10 +33,15 @@ class dfmcli extends CommandLineTool {
 		if (!$this->command or !in_array($this->command, $this->commands)) {
 			return $this->help("command not not found: '{$this->command}'");
 		}
+
+		if ($this->command == 'test') {
+			$this->test();
+			return;
+		}
 		
 		$this->type = array_shift($this->argv);
 		if (!$this->type or !in_array($this->type, $this->types)) {
-			return $this->help("type not not found: '{$this->type}'");
+			return $this->help("type not found: '{$this->type}'");
 		}
 		
 		$idlist = array_shift($this->argv);
@@ -53,7 +58,16 @@ class dfmcli extends CommandLineTool {
 	
 	function go() {
 		$plugin = PluginRegistry::getPlugin('generic', 'dfm');
+		$plugin->isCli = true;
+		$plugin->getFrontpageCreator();
 		$plugin->startUpdateFrontpages($this->idlist, $this->type, $this->command == 'update', true);
+	}
+
+	function test() {
+		$plugin = PluginRegistry::getPlugin('generic', 'dfm');
+		$plugin->isCli = true;
+		$plugin->getFrontpageCreator();
+		$plugin->startTestRun();
 	}
 	
 
@@ -63,7 +77,6 @@ class dfmcli extends CommandLineTool {
 	
 	function help($err) {
 		echo "Error: $err";
-		//echo "available commands:\n * " . implode("\n * ", $this->commands);
 		echo "\nusage: <" . implode("|", $this->commands) . '> <' . implode("|", $this->types) . '> <comma-separated-list>';
 	}
 

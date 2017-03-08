@@ -14,10 +14,9 @@
 {/strip}
 <h4>Protocol</h4>
 <div class='dainstPluginLog'>
-	{themResults}
+	{$dfm_log}
 </div>
 <br/>
-
 
 <input type="button" class="button" value="{translate key="common.ok"}" onclick="history.go(-1)"/>
 

@@ -16,20 +16,68 @@ class frontpageCreator {
 	public $plugin; // the dfm plugin
 	
 	public $tmp_path;
-	
+	public $path;
+
 	public $updateFrontpages = true; // if true first page will be exchanged, otherwise a front matter will be added
 	
 	function __construct($plugin) {
+
+		/*
+		error_reporting(E_ALL & ~ E_DEPRECATED);
+		ini_set('display_errors', 'on');//*/
+
 		$this->plugin = $plugin;
 		require_once("pdfWorker/logger.class.php");
 		$this->log = new \sometools\logger();
 
-		
-		/*
-		error_reporting(E_ALL & ~ E_DEPRECATED);
-		ini_set('display_errors', 'on');//*/
+		// get paths
+		$this->path = dirname(__FILE__);
+		$this->log->log($this->path);
+		$this->tmp_path = Config::getVar('dainst', 'tmpPath');
 	}
-	
+
+	/**
+	 * system test to see if everything works
+	 */
+	function runFrontpageTest() {
+		try  {
+			// instanciate pdfWorker to test prerequsits
+			require_once("pdfWorker/pdfWorker.class.php");
+			$pdfWorker = new \dfm\pdfWorker($this->log, array(
+				'tmp_path'		=> $this->tmp_path,
+				'files_path'	=> $this->path . '/pdfWorker/files', // artwork files and stuff
+				'tex_path'		=> $this->path . '/pdfWorker/fm-templates' // tex templates
+			));
+			$pdfWorker->checkPrerequisites();
+
+			$pdfWorker->setMetadata(array(
+				'article_author'	=> 'August Autor',
+				'article_title'		=> 'Automatische Generierung von Frontseiten in OJS',
+				'editor'			=> 'Hercule Herausgeber',
+				'issn_online'		=> '1234-5678',
+				'issn_printed'		=> '9876-6543',
+				'issue_tag'			=> '1',
+				'journal_title'		=> 'Journal of Example Data',
+				'journal_sub'		=> 'Deeper insights in to things by examples',
+				'journal_url'		=> 'www.example.org/ojs',
+				'pages'				=> '1-195',
+				'pub_id'			=> '1',
+				'publisher'			=> 'Peter Publisher Inc.',
+				'url'				=> 'www.example.org/ojs/1',
+				'urn'				=> 'urn:isbn:123456789',
+				'volume'			=> '1',
+				'year'				=> '2017',
+				'zenon_id'			=> ''
+			));
+			$path = $pdfWorker->createFrontPage();
+			$this->log->log("See  example here: $path");
+
+		} catch (Exception $e) {
+			$this->log->error($e->getMessage());
+			return $e->getMessage();
+		}
+		return true;
+	}
 
 	
 	/**
@@ -48,18 +96,18 @@ class frontpageCreator {
 	function runFrontpageUpate($ids, $type, $updateFrontpages = true) {
 
 		try {
+
+			// instanciate pdfWorker to test prerequsists
+			require_once("pdfWorker/pdfWorker.class.php");
+			$pdfWorker = new \dfm\pdfWorker($this->log);
+			$pdfWorker->checkPrerequisites();
+
+			// prepare
+			$pdfWorker->cleanTmpFolder();
 			
 			// update or replace fm
 			$this->updateFrontpages = $updateFrontpages;
 			$this->log->log($updateFrontpages ? 'replace front matter mode' : 'add front matter mode');
-			
-			// get and clean tmpFolder
-			$this->tmp_path = Config::getVar('dainst', 'tmpPath');
-			$this->log->debug("tmp path: ". $this->tmp_path);
-			if (!is_dir($this->tmp_path)) {
-				throw new \Exception("No proper tmp path defined: " . $this->tmpPath);
-			}
-			$this->cleanTmpFolder();
 
 			// idlist
 			$ids = !is_array($ids) ? array($ids): $ids;
@@ -435,7 +483,8 @@ class frontpageCreator {
 			array(
 				'tmp_path'		=> $this->tmp_path,
 				'tcpdf_path'	=> $this->plugin->pluginPath . '/tcpdf',
-				'files_path'	=> $this->plugin->pluginPath . '/classes/pdfWorker/files' // artwork files and stuff
+				'files_path'	=> $this->plugin->pluginPath . '/classes/pdfWorker/files', // artwork files and stuff
+				'tex_path'	=> $this->plugin->pluginPath . '/classes/pdfWorker/fm-templates' // tex templates
 			)
 		);		
 		$this->log->log('using controller ' . $class);
@@ -488,12 +537,6 @@ class frontpageCreator {
 		}
 	}
 
-	/**
-	 * deleted whatever garbish was created on the way to the new frontmatter
-	 */
-	public function cleanTmpFolder() {
-		array_map('unlink', glob($this->tmp_path . '/*'));
-	}
 	
 	/**
 	 * removes linebreaks from a string and replaces them with whitespace

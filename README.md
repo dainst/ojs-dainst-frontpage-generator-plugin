@@ -12,3 +12,5 @@ Version: 2.4.8
 * pdftk
 * exiftools
 
+@author 
+Copyright 2017 (c) Philipp Franck @ Deutsches Archäologisches Institut

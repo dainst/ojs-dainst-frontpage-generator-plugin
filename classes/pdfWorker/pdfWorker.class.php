@@ -3,7 +3,7 @@
  * 
  * this class creates a pdf front page in the dainst style
  * 
- * it is designed to work in different contexts (the OJS Importer maybe for axample, or
+ * it is designed to work in different contexts (the OJS Importer maybe for example, or
  * an OMP instacne or...), so everything wich is OJS-specific code is kept outside this class
  * 
  * @author Philipp Franck
@@ -41,7 +41,8 @@ namespace dfm {
 		public $settings = array(
 			'tcpdf_path'		=> '',
 			'tmp_path'			=> '',
-			'files_path'		=> ''
+			'files_path'		=> '',
+			'tex_path'			=> ''
 		);
 		
 		/**
@@ -50,7 +51,7 @@ namespace dfm {
 		 * 
 		 */
 		public $metadata = array(
-			'article_author'	=> '###', 
+			'article_author'	=> '###',
 			'article_title'		=> '###',
 			'editor'			=> '###',
 			'issn_online'		=> '',
@@ -71,6 +72,8 @@ namespace dfm {
 		// '###' -> means missing, will be printed and warning, '' means unset, will not be printed
 		
 		public $smallMode = false; // false: A4 Formatj, true: A5 Format
+
+		public $texTemplate = 'default';
 		
 		public $lang = array();
 				
@@ -124,10 +127,31 @@ namespace dfm {
 		}
 		
 		function createFrontPage() {
+
+			$lualatex = "lualatex 
+							-output-directory={$this->settings['tmp_path']}
+							-interaction=nonstopmode 
+							-halt-on-error 
+							\"\\input{{$this->settings['tex_path']}/{$this->texTemplate}/frontmatter.tex}\"
+						";
+			$return = exec($lualatex, $output, $exitstatus);
+
+			$this->logger->log($lualatex);
+			if ($exitstatus > 0) {
+				throw new \Exception($return . '<br>' . print_r($output,1));
+			} else {
+				$this->logger->log($return);
+			}
+
+
+
+
+
+			/*
 			$pdf = $this->createPDFObject();
 			$pdf->daiFrontpage(); // default frontpage layout
 			$path = $this->getTmpFileName();
-			$pdf->Output($path, 'F');
+			$pdf->Output($path, 'F');*/
 			return $path;
 		}
 				
@@ -253,6 +277,31 @@ namespace dfm {
 		
 		public function cleanTmpFolder() {
 			array_map('unlink', glob($this->settings['tmp_path'] . '/*'));
+		}
+
+		public function checkPrerequisites() {
+
+			if (!is_dir($this->settings['tmp_path'])) {
+				throw new \Exception("No proper tmp path defined: " . $this->settings['tmp_path']);
+			}
+			if (!is_writable($this->settings['tmp_path'])) {
+				throw new \Exception("tmp path is not writable: " . $this->settings['tmp_path']);
+			}
+			$this->logger->debug("check tmp path: ". $this->tmp_path);
+
+			$texlive = exec('lualatex --version', $output, $status);
+			if ($status > 0) {
+				throw new \Exception("lualatex is not installed or does not work properly:\n" . implode("\n", $output));
+			}
+			$this->logger->log('check lualatex: ' . $output[0]);
+
+			$template = "{$this->settings['tex_path']}/{$this->texTemplate}/frontmatter.tex";
+			if (!file_exists($template)) {
+				throw new \Exception("no Tex-Templates found: $template");
+			}
+			$this->logger->log('check lualatex templates: OK, present');
+
+
 		}
 		
 	}

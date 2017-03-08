@@ -27,10 +27,6 @@ class selectToReFreshForm extends Form {
 		return parent::display($request, $template);
 	}
 	
-	function execute() {
-		return  $this->_plugin->startUpdateFrontpages($this->getData('id'), $this->getData('type'), $this->getData('replace'));	
-	}
-	
 	function readInputData() {
 		$vars = array(
 			'id' => "str",
