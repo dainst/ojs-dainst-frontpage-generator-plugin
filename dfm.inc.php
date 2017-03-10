@@ -141,6 +141,10 @@ class dfm extends GenericPlugin {
 		} else if (Request::getUserVar('test')) {
 			$this->startTestRun();
 			return true;
+		} else if (Request::getUserVar('previewpdf')) {
+			$form->readInputData();
+			$this->flushTmpFile(Request::getUserVar('workingdirectory'));
+			return true;
 		}
 		$form->display();
 		return true;
@@ -163,13 +167,17 @@ class dfm extends GenericPlugin {
 
 	function startUpdateFrontpages($ids, $type, $updateFrontpages = true) {
 		$ids = (!is_array($ids)) ? explode(',', $ids) : $ids;
-		$success = $This->_frontpageCreator->runFrontpageUpate($ids, $type, $updateFrontpages);
+		$success = $this->_frontpageCreator->runFrontpageUpate($ids, $type, $updateFrontpages);
 		$this->showLog($success);
 	}
 
 	function startTestRun(){
 		$success = $this->_frontpageCreator->runFrontpageTest();
 		$this->showLog($success);
+	}
+
+	function flushTmpFile($dir) {
+		$this->_frontpageCreator->flushTmpFile($dir);
 	}
 	
 	/* helping hands */

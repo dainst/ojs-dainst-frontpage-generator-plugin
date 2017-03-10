@@ -33,13 +33,17 @@ namespace sometools {
 		 * @param <string> $string
 		 */
 		function warning($string) {
-			return  $this->_pushlog($string, 'warning');
+			return $this->_pushlog($string, 'warning');
+		}
+
+		function warnings($array) {
+			return $this->_pushlist($array, 'warning');
 		}
 
 		/**
 		 * stores an error
 		 *
-		 * usually stops the process
+		 * usually stops the process (is not done by logger)
 		 * is shown to user
 		 *
 		 *
@@ -59,7 +63,23 @@ namespace sometools {
 		function log($string, $type = 'info') {
 			return $this->_pushlog($string, $type);
 		}
-		
+
+		function logs($array, $type = 'info') {
+			return $this->_pushlist($string, $type);
+		}
+
+		private function _pushlist($array, $type) {
+			$entries = array();
+			if (is_array($array)) {
+				foreach ($array as $item) {
+					$entries[] = $this->_pushlog($item, $type);
+				}
+			} else {
+				$entries[] = $this->_pushlog($array, $type);
+			}
+			return $entries;
+		}
+
 		private function _pushlog($string, $type) {
 			if (gettype($string) !== "string") {
 				$string = '<pre>' . print_r($string, 1) . '</pre>';

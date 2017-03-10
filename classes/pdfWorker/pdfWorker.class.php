@@ -99,10 +99,9 @@ namespace dfm {
 		
 		/**
 		 * to be overwritten
-		 * @param unknown $data
 		 */
 		function setMetadata($data) {
-			
+			$this->metadata = $data;
 		}
 		
 		/**
@@ -127,32 +126,48 @@ namespace dfm {
 		}
 		
 		function createFrontPage() {
+			$dir = $this->createWorkingDirectory();
+			$this->logger->log('work on' . print_r($dir,1));
 
-			$lualatex = "lualatex 
-							-output-directory={$this->settings['tmp_path']}
-							-interaction=nonstopmode 
-							-halt-on-error 
-							\"\\input{{$this->settings['tex_path']}/{$this->texTemplate}/frontmatter.tex}\"
-						";
+			$tex = $this->createTexCommands();
+			$tex[] = "\\input{{$this->settings['tex_path']}/{$this->texTemplate}/frontmatter.tex}";
+			$tex = implode(' ', $tex);
+			$lualatex = "cd $dir && lualatex -output-directory=$dir -interaction=nonstopmode -halt-on-error -recorder \"$tex\"";
 			$return = exec($lualatex, $output, $exitstatus);
+
 
 			$this->logger->log($lualatex);
 			if ($exitstatus > 0) {
-				throw new \Exception($return . '<br>' . print_r($output,1));
+				$error = $this->logger->error($return);
+				$error->debuginfo = implode("\n", $output);
+				throw new \Exception("Compilation of frontmatter with Lualatex failed");
 			} else {
 				$this->logger->log($return);
 			}
 
+			return $dir;
+		}
+
+		function createTexCommands() {
+			$tex = array();
+			foreach ($this->metadata as $var => $val) {
+				if ((substr($val,1,1) != "#") and ($val !== "")){
+					$v = str_replace('_', '', $var);
+					$tex[] = "\\newcommand{\\fm$v}{{$val}}"; // @ TODO escape bogus chars
+				}
+
+			}
+			return $tex;
+		}
 
 
-
-
-			/*
-			$pdf = $this->createPDFObject();
-			$pdf->daiFrontpage(); // default frontpage layout
-			$path = $this->getTmpFileName();
-			$pdf->Output($path, 'F');*/
-			return $path;
+		function createWorkingDirectory() {
+			$dir = $this->settings['tmp_path'] . '/' . md5(microtime() . rand());
+			if (mkdir($dir)) {
+				return $dir;
+			} else {
+				throw new \Exception("could not create working dir:" . $dir);
+			}
 		}
 				
 		function getTmpFileName() {
@@ -245,7 +260,6 @@ namespace dfm {
 		
 		/**
 		 * creates a string containing dai specific metadata, wich we write in in the dc:relation field, abusing it somehow
-		 * @param unknown $article
 		 */
 		private function _pdfMetadataCommand() {
 			

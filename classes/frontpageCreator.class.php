@@ -70,8 +70,8 @@ class frontpageCreator {
 				'zenon_id'			=> ''
 			));
 			$path = $pdfWorker->createFrontPage();
-			$this->log->log("See  example here: $path");
-
+			$templateMgr =& TemplateManager::getManager();
+			$templateMgr->assign('pdfpreview', $path);
 		} catch (Exception $e) {
 			$this->log->error($e->getMessage());
 			return $e->getMessage();
@@ -79,6 +79,14 @@ class frontpageCreator {
 		return true;
 	}
 
+
+	function flushTmpFile($wdir) {
+		$name = "$wdir/frontmatter.pdf";
+		$fp = fopen($name, 'rb');
+		header("Content-Type: application/pdf");
+		header("Content-Length: " . filesize($name));
+		fpassthru($fp);
+	}
 	
 	/**
 	 * This marvelous function extraordinaire does a fantastic job in creating in 
