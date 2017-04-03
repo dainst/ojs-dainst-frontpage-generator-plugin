@@ -12,6 +12,8 @@
 	<message key="article.plugins.generic.dainstFrontmatter.idlistText">Fügen Sie in den Kasten unten entweder die ID bzw. eine (kommagetrennte) Liste von IDs ein oder eine URL, die zu einem Artikel oder einer Artikelfahne zeigt, ...</message>
 	<message key="article.plugins.generic.dainstFrontmatter.idsAre">... und geben Sie an, zu welchem Kriterium die ID(s) gehören:</message>
 	<message key="article.plugins.generic.dainstFrontmatter.articlealert"><![CDATA[Beachten Sie, dass bei gewählter Kategorie <b>Artikel</b> <emph>alle</emph> Fahnen (i.d.R. PDFs) eine aktualisierte Titelseite bekommen.]]></message>
-	<message key="article.plugins.generic.dainstFrontmatter.button.update">Aktualisiere Titelseite(n)</message>
+	<message key="plugins.generic.dainstFrontmatter.button.update">Aktualisiere Titelseite(n)</message>
+	<message key="plugins.generic.dainstFrontmatter.updated">Titelseite wurde aktualisiert.</message>
 	<message key="article.plugins.generic.dainstFrontmatter.button.replace"><![CDATA[Titelseite(n) <b>austauschen</b>]]></message>
+	<message key="plugins.generic.dainstFrontmatter.button.test">Funktionstüchtigkeit Testen</message>
 </locale>
