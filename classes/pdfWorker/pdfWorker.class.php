@@ -57,7 +57,7 @@ namespace dfm {
 			'issn_printed'		=> '',
 			'issue_tag'			=> '###',
 			'journal_title'		=> '###',
-			'journal_sub'		=> '###',
+			'journal_sub'		=> '',
 			'journal_url'		=> '###',
 			'pages'				=> '###',
 			'pub_id'			=> '###',
