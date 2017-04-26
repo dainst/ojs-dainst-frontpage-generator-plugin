@@ -1,0 +1,180 @@
+% !TEX TS-program = lualatex
+\documentclass[
+  fontsize=9pt,
+  DIV=1]
+{scrartcl}
+\usepackage{fontspec}
+\usepackage[abspath]{currfile}
+\usepackage[english]{babel}
+\setmainfont[
+  Path 				= \currfileabsdir,
+  Ligatures     	= TeX,
+  UprightFont		= calibri/Calibri.ttf,
+  ItalicFont    	= calibri/CalibriItalic.ttf,
+  BoldItalicFont    = calibri/CalibriBoldItalic.ttf,
+  BoldFont    		= calibri/CalibriBold.ttf
+]{Calibri}
+\usepackage[none]{hyphenat}
+\usepackage{url}
+\usepackage{xcolor}
+\definecolor{fmblue}{RGB}{0, 75, 135}
+\definecolor{fmgray}{RGB}{166,179,179}
+\usepackage{pdfpages}
+\usepackage{ragged2e}
+\usepackage{microtype}
+\usepackage{xspace}
+\urlstyle{same}
+\usepackage[
+  a4paper,
+  left=2.50cm,
+  right=2.50cm,
+  top=2.0cm,
+  bottom=2.50cm,
+  ]{geometry}
+\pagestyle{empty}
+\usepackage{hyperxmp}
+\usepackage{hyperref}
+\usepackage{bookmark}
+%------------------------
+\input{\currfileabsdir/fmdefinitions}
+%\input{test}
+%\def\inputpdf{test2}
+%------------------------
+\newcommand\eng[1]{\foreignlanguage{english}{\textcolor{fmgray}{#1}}}
+\newcommand\entry[2]{#1 \fmsep \eng{#1} \fmbf{#2}}
+\providecommand\fmbf[1]{\textbf{#1}}
+\providecommand\fmsep{|\xspace}
+\providecommand\fmeditortag{\iflanguage{english}{Publishing editor}{Verantwortliche Redaktion}\xspace}
+\providecommand\fmjournalurltag{\iflanguage{english}{For further information see}{Weitere Informationen unter}\xspace}
+\providecommand\fmissntag{\iflanguage{english}{ISSN of the printed edition}{ISSN der gedruckten Ausgabe}\xspace}
+\providecommand\fmissntagonline{\iflanguage{english}{ISSN of the online edition}{ISSN der Online-Ausgabe}\xspace}
+\providecommand\fmpublishertag{\iflanguage{english}{Publisher}{Verlag}\xspace}
+\providecommand\fmpagestag{\iflanguage{english}{Page}{Seite}\xspace}
+\providecommand\fmfromtag{\iflanguage{english}{from}{aus}\xspace}
+\providecommand\fmissuetag{\iflanguage{english}{Issue}{Ausgabe}\xspace}
+\providecommand\fmdigitaloffprinttag{\iflanguage{english}{This is a digital offprint of the article}{Dies ist ein digitaler Sonderdruck des Beitrags}\xspace}
+\providecommand\fmlogo{\textcolor{red}{?Logo?}}
+\providecommand\fmcopyright{\textcolor{red}{?Copyright?}}
+\providecommand\fmtermsengtag{Terms of use:}
+\providecommand\fmtermsgertag{Nutzungsbedingungen:}
+\providecommand\fmtermseng{\textcolor{red}{Insert your conditions here}}
+\providecommand\fmtermsger{\textcolor{red}{Fügen Sie Ihre Bedingungen hier ein}}
+\providecommand\fmterms{\iflanguage{english}{\textbf{\fmtermsengtag} \fmtermseng}{\textbf{\fmtermsgertag} \fmtermsger}}
+\providecommand\fmtitle{\textcolor{red}{?Titel?}}
+\providecommand\fmauthor{\textcolor{red}{?Autorenname?}}
+\providecommand\fmabstract{\textcolor{red}{?Abstract?}}
+\providecommand\fmjournal{\textcolor{red}{?Zeitschrift?}}
+\providecommand\fmjournalsubtitle{\textcolor{red}{?Zeitschriftuntertitel?}}
+\providecommand\fmurn{}
+  \def\URN#1{%
+  \if$#1$ \textcolor{red}{?urn?}%  #1 is empty
+  \else \href{http://www.nbn-resolving.org/\fmurn}{\fmurn}%
+  \fi
+}
+\providecommand\fmprestring{}
+\providecommand\fmstring{}
+  \def\PURL#1{%
+  \if$#1$ \textcolor{red}{?Link?}%  #1 is empty
+  \else \url{\fmprestring\fmstring}%
+  \fi
+}
+\providecommand\fmpages{\textcolor{red}{?Seiten?}}
+\providecommand\fmyear{\textcolor{red}{?Jahr?}}
+\providecommand\fmissn{\textcolor{red}{?ISSN?}}
+\providecommand\fmissnonline{}
+  \def\fmissnonlinetag#1{%
+  \if$#1$ %#1 is empty
+  \else \fmissntagonline \fmsep \eng{\fmissntagonline} \fmbf{\fmissnonline}\\%
+  \fi
+}
+
+\providecommand\fmshortjournal{}
+  \def\fmjournalURL#1{%
+  \if$#1$ \textcolor{red}{?Zeitschriften-Link?}% #1 is empty
+  \else \url{\fmprestring\fmshortjournal}%
+  \fi
+}
+\providecommand\fmcaptionwriter{}
+\providecommand\fmeditor{\textcolor{red}{?Herausgeber?}}
+\providecommand\fmissue{\textcolor{red}{?Ausgabe?}}
+\providecommand\fmpublisher{\textcolor{red}{?Herausgeber?}}
+\providecommand\fmeditor{\textcolor{red}{?Verlag?}}
+\providecommand\fmlang{}
+
+
+\providecommand\inputpdf{}
+\def\inputcmd#1{
+  \if$#1$     					% #1 is empty
+  \else
+	\clearpage\pdfbookmark[1]{\fmauthor{} | \fmtitle}{2}\includepdf[%
+	% noautoscale,   			% insert into DIN A4 dimension
+	  fitpaper,     			% leave inserted pdf-size as it is
+	  pages=-,     				% all pages
+	  frame=false,   			% make a frame
+	  pagecommand={}, 			% for various commands
+	  link=true,
+	  linkname={\fmauthor | \fmtitle},
+	  linkfit=FitBH,
+	  ]{\inputpdf}%
+  \fi
+}
+%	\message{YES  input pdf}
+%----------------hypersetup
+\hypersetup{          			% setup the hyperref-package options
+  unicode,          			% allow all unicodes (lualatex)
+  pdfencoding=auto,        		% encoding
+  pdftitle={\fmtitle},        	% title (PDF meta)
+  pdfsubject={\fmabstract},    	% Abstract (PDF meta)
+  pdfauthor={\fmauthor},      	% author (PDF meta)
+  pdfcaptionwriter={\fmcaptionwriter},    % Name of meta-data writer
+  pdfcopyright={\fmeditor},     % holder of copyrights
+  pdfinfo={
+    Copyright={\fmeditor{} All rights reserved.},
+  },
+  pdfhighlight=/N,        		%
+  pdfdisplaydoctitle=true,      % title will be shown in documentstitlebar
+  pdfdate={\the\year-\the\month-\the\day}, % creation date of pdf
+  hidelinks,          			% no color or frame around links etc.
+  pdfcreator= {DAI Frontmatter-Plugin},
+  pdfproducer={LuaLaTeX},      	% mashine which produced the pdf
+  plainpages=true,
+  pdfborder={0 0 0},
+  final=true,
+}
+
+%----------------document
+\begin{document}
+
+hallo
+
+%-------header-----------
+\pdfbookmark[1]{\fmjournal{} \fmissue{}  (\fmyear) \fmpages{}| Frontmatter}{1}
+\begin{flushright}
+\fmlogo
+\end{flushright}
+\raggedright
+\vspace*{4em}
+%-------article-----------
+\entry{\fmdigitaloffprinttag}{}\\[1em]
+
+\huge
+
+\fmtitle
+
+
+
+
+%-------journal-----------
+%\entry{\fmfromtag}{}\\
+%{\huge\fmbf{\fmjournal}\\
+%\fmjournalsubtitle\\[2em]}
+%------------------
+%\entry{\fmissuetag}{\fmissue} {\color{fmblue}$\bullet$} \fmbf{\fmyear}\hfill\PURL{\fmstring}\\
+%\entry{\fmpagestag}{\fmpages}\hfill\URN{\fmurn}\\[1em]
+%\vfill
+%------------------
+hallo
+%\huge\\[.5em]
+%\fmbf{\fmtitle}}\\[4em]
+
+\end{document}

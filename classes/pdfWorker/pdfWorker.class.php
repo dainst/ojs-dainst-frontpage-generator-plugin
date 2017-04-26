@@ -56,7 +56,7 @@ namespace dfm {
 			'editor'			=> '###',
 			'issn_online'		=> '',
 			'issn_printed'		=> '',
-			'issue_tag'			=> '###',
+			'issue'			=> '###',
 			'journal_title'		=> '###',
 			'journal_sub'		=> '###',
 			'journal_url'		=> '###',
@@ -92,8 +92,8 @@ namespace dfm {
 					$this->metadata[$key] = $data[$key];
 				}
 			}
-			if (($this->metadata['issue_tag'] == '###') and isset($this->metadata['volume']) and isset($this->metadata['year'])) {
-				$this->metadata['issue_tag']		= "{$this->metadata['volume']} • {$this->metadata['year']}";
+			if (($this->metadata['issue'] == '###') and isset($this->metadata['volume']) and isset($this->metadata['year'])) {
+				$this->metadata['issue'] = "{$this->metadata['volume']} • {$this->metadata['year']}";
 			}
 		}
 		
@@ -274,7 +274,7 @@ namespace dfm {
 				}
 			}
 
-			$return[] = "-Description=" . escapeshellarg("{$metadata['journal_title']}; {$metadata['issue_tag']}; {$metadata['pages']}");
+			$return[] = "-Description=" . escapeshellarg("{$metadata['journal_title']}; {$metadata['tag']}; {$metadata['pages']}");
 			$return[] = '-Title=' . escapeshellarg($metadata['article_title']);
 			$return[] = '-Author=' . escapeshellarg($metadata['article_author']);
 			$return[] = '-Creator="DAINST OJS Frontmatter Plugin"';

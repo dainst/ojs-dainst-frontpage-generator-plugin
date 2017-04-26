@@ -56,7 +56,7 @@ class frontpageCreator {
 				'editor'			=> 'Hercule Herausgeber',
 				'issn_online'		=> '1234-5678',
 				'issn_printed'		=> '9876-6543',
-				'issue_tag'			=> '1',
+				'issue'			=> '1',
 				'journal_title'		=> 'Journal of Example Data',
 				'journal_sub'		=> 'Deeper insights in to things by examples',
 				'journal_url'		=> 'www.example.org/ojs',
@@ -280,7 +280,7 @@ class frontpageCreator {
 	 * 
 	 * get all articles galley wich are flaggged as missing in the zenon-id (the importer does that)
 	 * 
-	 * we misuse the zenonId-field to flag articles in the importer wich need to get an cover
+	 * we misuse the pages-field to flag articles in the importer wich need to get an cover
 	 * 
 	 */
 	function getMissing() {

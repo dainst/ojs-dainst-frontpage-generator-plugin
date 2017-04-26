@@ -1,0 +1,60 @@
+\newlength\mylength
+\setlength\mylength{7cm}
+\def\myrule{\textcolor{fmgray}{\rule{\mylength}{0.5pt}}}
+\newcommand\DAI{Deutsches Archäologisches Institut\xspace}
+\newcommand\DAImail{\href{mailto:info@dainst.de}{info@dainst.de}}
+\newcommand\DAIweb{\href{http://www.dainst.org}{dainst.org}}
+\newcommand\DAIpub{\href{https://publications.dainst.org}{https://publications.dainst.org}}
+
+\def\fmcaptionwriter{\DAI}
+\def\fmtermseng{All materials including texts, articles, images, 
+digital book editions and other content contained on this online portal 
+of electronic publications of the \DAI (iDAI.publications) 
+are subject to the German copyright. The contents are for personal 
+use only and may only be reproduced or made accessible to third parties 
+if you have gained permission from the copyright owner. 
+Any form of commercial use is expressly prohibited.
+When seeking the granting of licenses of use or permission to reproduce any kind of 
+material please contact the responsible editors of the publications or contact the \DAI (\DAImail).}
+
+\def\fmtermsger{Bitte beachten Sie, dass sämtliche Texte, Bilder, Artikel, 
+elektronische Buchausgaben und sonstige Inhalte, 
+die Sie auf den iDAI.publications- Publikationsportalen des 
+Deutschen Archäologischen Instituts finden, 
+dem Schutz des deutschen Urheberrechts unterliegen. 
+Sie können von Ihnen nur dann genutzt und vervielfältigt werden, 
+wenn Ihnen dies im Einzelfall durch den Rechteinhaber oder 
+die Schrankenregelungen des Urheberrechts gestattet ist. 
+Jede Art der Nutzung zu gewerblichen Zwecken ist untersagt. 
+Zu den Möglichkeiten einer Lizensierung von Nutzungsrechten
+wenden Sie sich bitte an die verantwortlichen Herausgeber der 
+Publikationsorgane oder an das Deutsche Archäologische Institut
+(\DAImail).}
+
+\def\fmprestring{https://publications.dainst.org/journals/}
+
+\def\fmcopyright{\textbf{\DAI}\\
+\DAI, Zentrale, 
+Podbielskiallee 69--71, 
+14195 Berlin, 
+Tel: \texttt{+}49 30 187711-0\\
+Email: \DAImail{} \fmsep
+Web: \DAIweb}
+
+\def\electronicpublication{\iflanguage{english}
+{Electronic Publications of the \DAI}
+{\scshape elektronische publikationen des\linebreak deutschen archäologischen instituts}\xspace}
+
+
+\def\fmlogo{%
+\begingroup
+\begin{minipage}{\mylength + 5.5pt}
+\includegraphics[width=3cm]{\currfileabsdir/dailogo}\hfill%
+{\footnotesize\DAIpub}
+\end{minipage}\\[.3em]
+\myrule\\[.3em]
+\resizebox{\mylength + \widthof{...}}{!}{\textcolor{fmblue}{i\kern -.5pt}DAI.publications}\\[-.2em]
+\myrule\\
+{\Large\electronicpublication}%
+\endgroup
+}
