@@ -20,7 +20,7 @@
 <br/>
 <input type="checkbox" name="replace" checked="checked" id="checkReplace"><label for="checkReplace">{translate key="article.plugins.generic.dainstFrontmatter.button.replace"}</label><br>
 <br/>
-<input type="submit" name="save" class="button defaultButton" value="{translate key="article.plugins.generic.dainstFrontmatter.button.update"}"/>
+<input type="submit" name="save" class="button defaultButton" value="{translate key="plugins.generic.dainstFrontmatter.button.update"}"/>
 <input type="button" class="button" value="{translate key="common.cancel"}" onclick="history.go(-1)"/>
 </form>
 
