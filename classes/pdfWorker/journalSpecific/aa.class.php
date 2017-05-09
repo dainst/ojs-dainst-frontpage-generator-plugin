@@ -12,13 +12,7 @@ namespace dfm\pdfWorkers {
 				$this->metadata['publisher'] 	= "Verlag Philipp von Zabern GmbH, München";
 			}
 		}
-		
-		function checkFile($file) {
-			return true;
-		}
-		
-		
-		public $smallMode = false;
+
 		
 	}
 }
