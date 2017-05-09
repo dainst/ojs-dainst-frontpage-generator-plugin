@@ -6,6 +6,8 @@ namespace dfm\pdfWorkers {
 			Um eine Kopie dieser Lizenz zu sehen, besuchen Sie bitte http://creativecommons.org/licenses/by-nc-nd/4.0/";
 			$this->lang->terms->en  = "<b style=\"font-family:calibrib\">Terms of use:</b> The e-Annual Report {$this->metadata['year']} of the Deutsches Archäologisches Institut is published under the Creative-Commons-Licence BY – NC – ND 4.0 International. <br> 
 			To see a copy of this licence visit http://creativecommons.org/licenses/by-nc-nd/4.0/";
+			$this->lang->publisher->de = "";
+			$this->lang->publisher->en = "";
 		}
 		
 	}
