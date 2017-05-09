@@ -9,6 +9,7 @@ namespace dfm\pdfWorkers {
 			} else {
 				$this->metadata['publisher'] 	= "Verlag Philipp von Zabern GmbH, München";
 			}
+
 		}
 
 		
