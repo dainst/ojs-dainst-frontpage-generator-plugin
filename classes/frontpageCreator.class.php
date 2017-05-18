@@ -256,7 +256,8 @@ class frontpageCreator {
 			throw new Exception("no galleys given");
 		}
 		foreach ($this->galleysToUpdate as $galleyItem) {
-			$this->log->log('next item: ' . $this->_getLocalized($galleyItem->article->getTitle()));
+			$this->log->log('next item: ' . $galleyItem->article->getTitle($galleyItem->article->getLocale()));
+
 			$this->processItem($galleyItem, $removeMarker);
 		}
 	}
@@ -443,7 +444,7 @@ class frontpageCreator {
 		// fill it with data
 		@$meta = array(
 			'article_author'	=> $this->_noDoubleSpaces($article->getAuthorString(false, ' – ')),
-			'article_title'		=> $this->_getLocalized($article->_data['title']),
+			'article_title'		=> $article->getTitle($article->getLocale()),
 			'editor'			=> '<br>' . $this->_noLineBreaks($journalSettings['contactName'] . ' ' . $this->_getLocalized($journalSettings['contactAffiliation'])),
 			'journal_title'		=> $this->_getLocalized($journalSettings['title']), 
 			'journal_url'		=> Config::getVar('general', 'base_url') . '/' . $journalAbb,
