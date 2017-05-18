@@ -16,4 +16,5 @@
 	<message key="plugins.generic.dainstFrontmatter.updated">Titelseite wurde aktualisiert.</message>
 	<message key="article.plugins.generic.dainstFrontmatter.button.replace"><![CDATA[Titelseite(n) <b>austauschen</b>]]></message>
 	<message key="plugins.generic.dainstFrontmatter.button.test">Funktionstüchtigkeit Testen</message>
+	<message key="plugins.generic.dainstFrontmatter.updated">Neue Frontseite generiert</message>
 </locale>
