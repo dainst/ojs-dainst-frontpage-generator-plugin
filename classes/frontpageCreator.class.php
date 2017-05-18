@@ -331,7 +331,7 @@ class frontpageCreator {
 			!is_null($user) ? $user->getId() : '', // if cli, user is not given
 			$article,
 			ARTICLE_LOG_TYPE_DEFAULT,
-			'plugins.generic.dainstFrontmatter.updated',
+			__('plugins.generic.dainstFrontmatter.updated'),
 			array(
 				'userName' => !is_null($user) ? $user->getFullName() : 'cli',
 				'articleId' => $article->getId()
