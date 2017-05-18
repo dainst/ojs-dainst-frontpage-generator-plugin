@@ -258,6 +258,16 @@ class frontpageCreator {
 		foreach ($this->galleysToUpdate as $galleyItem) {
 			$this->log->log('next item: ' . $galleyItem->article->getTitle($galleyItem->article->getLocale()));
 
+			$this->log-log(array(
+				$galleyItem->article->getTitle($galleyItem->article->getLocale()),
+				$galleyItem->article->getLocalizedTitle(),
+				$galleyItem->article->getLocale()
+				$galleyItem->galley->getTitle($galleyItem->article->getLocale(),
+				$galleyItem->galley->getLocalizedTitle(),
+				$galleyItem->galley->getLocale()
+			))
+
+
 			$this->processItem($galleyItem, $removeMarker);
 		}
 	}
