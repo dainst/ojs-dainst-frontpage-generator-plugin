@@ -14,6 +14,7 @@
 	<message key="article.plugins.generic.dainstFrontmatter.articlealert"><![CDATA[Please notice that by selecting <b>Article</b> <emph>all</emph> galleys (e.g. PDFs) will get an updated front matter.]]></message>
 	<message key="plugins.generic.dainstFrontmatter.button.update">Update Front Matter(s)</message>
 	<message key="plugins.generic.dainstFrontmatter.updated">Front Matter has been updated.</message>
-	<message key="article.plugins.generic.dainstFrontmatter.button.replace"><![CDATA[<b>Replace</b> Front Matter]]></CDATA></message>
-<message key="plugins.generic.dainstFrontmatter.button.test">Statustest</message>
+	<message key="article.plugins.generic.dainstFrontmatter.button.replace"><![CDATA[<b>Replace</b> Front Matter]]>]]></message>
+	<message key="plugins.generic.dainstFrontmatter.button.test">Statustest</message>
+	<message key="plugins.generic.dainstFrontmatter.updated">Created new Frontmatter</message>
 </locale>
