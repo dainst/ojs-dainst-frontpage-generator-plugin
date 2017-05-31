@@ -257,15 +257,6 @@ class frontpageCreator {
 		}
 		foreach ($this->galleysToUpdate as $galleyItem) {
 			$this->log->log('next item: ' . $galleyItem->article->getTitle($galleyItem->galley->getLocale()));
-/*
-			$this->log->log(array(
-				$galleyItem->article->getTitle($galleyItem->article->getLocale()),
-				$galleyItem->article->getLocalizedTitle(),
-				$galleyItem->article->getLocale(),
-				$galleyItem->galley->getLocale()
-			));
-*/
-
 			$this->processItem($galleyItem, $removeMarker);
 		}
 	}
@@ -415,6 +406,9 @@ class frontpageCreator {
 		import('classes.file.ArticleFileManager');
 		$articleFileManager = new ArticleFileManager($articleId);
 		$articleFile = $articleFileManager->getFile($galley->_data['fileId']);
+		if (!is_object($articleFile)) { // under some currently unknown circumstances $articleFile is empty
+			throw new Exception("File #$articleFile of galley #" . $galley->getId() . " of article #$articleId has a problem / is not found");
+		}
 		$fileToUpdate = $articleFileManager->filesDir .  $articleFileManager->fileStageToPath($articleFile->getFileStage()) . '/' . $articleFile->getFileName();
 		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
 		$newGalley = new ArticleGalley();
