@@ -19,7 +19,10 @@ class frontpageCreator {
 	
 	public $updateFrontpages = true; // if true first page will be exchanged, otherwise a front matter will be added
 
-	const supportedTypes = array('galley', 'article', 'journal', 'issue', 'dirty');
+	public $continue = false;  // data if not everything could processed at once
+
+	const supportedTypes = array('galley', 'article', 'journal', 'issue', 'missing');
+	const maxUpdatesAtOnce = 25;
 
 	function __construct($plugin) {
 		$this->plugin = $plugin;
@@ -88,7 +91,8 @@ class frontpageCreator {
 			if ($type == "missing") {
 				$this->getMissing();
 			}
-			$this->processList($type == "missing");
+
+			$this->processList($type == "missing", $type != "missing");
 
 	
 		} catch (Exception $e) {
@@ -96,8 +100,8 @@ class frontpageCreator {
 		}
 		
 		$this->removeUnfinishedGalleys();
-		
-		
+
+
 		return true;
 	}
 	
@@ -194,13 +198,10 @@ class frontpageCreator {
 	
 	function getIssueGalleys($id) {
 		$this->log->log('get galleys of issue ' + $id);
-		//$issueDao =& DAORegistry::getDAO('IssueDAO');
-		//PublishedArticleDAO
 		$PublishedArticleDAO =& DAORegistry::getDAO('PublishedArticleDAO');
 		$publishedArticles = $PublishedArticleDAO->getPublishedArticles($id);
 		$journal = false;
 		foreach ($publishedArticles as $publishedArticle) {
-			$this->log->log($publishedArticle->getId());
 			$journal = !$journal ? $this->getJournal($publishedArticle->getJournalId()) : $journal;
 			$this->getArticleGalleys($publishedArticle->getId(), $journal);
 		}
@@ -273,16 +274,41 @@ class frontpageCreator {
 	 * runs over the list of registered galleys ($this->galleysToUpdate) and updates them
 	 * 
 	 * @param <bool> $removeMarker - if true, update the article to remove need-no-frontmatter-marker
+	 * @param <bool> $removeMarker - if true, only a maximum of item will be processed
+	 * both makes only sense to change in context of cli driven "replace missing", but that may change in further developpment
+	 *
 	 * @throws Exception
 	 */
-	function processList($removeMarker = false) {
+	function processList($removeMarker = false, $applyMaximumOprations =  true) {
 		if (!$this->galleysToUpdate or !count($this->galleysToUpdate)) {
 			throw new Exception("no galleys given");
 		}
+
+		if ($applyMaximumOprations and (count($this->galleysToUpdate) > frontpageCreator::maxUpdatesAtOnce)) {
+			$this->log->warning("To many galleys to update front matters at once: " . count($this->galleysToUpdate) . ". (Maximums is " . frontpageCreator::maxUpdatesAtOnce .")");
+			$this->shiftList($removeMarker);
+		}
+
 		foreach ($this->galleysToUpdate as $galleyItem) {
 			$this->log->log('next item: ' . $galleyItem->article->getTitle($galleyItem->galley->getLocale()));
 			$this->processItem($galleyItem, $removeMarker);
 		}
+	}
+
+	/**
+	 * if the list is to long for getting proecessed at once
+	 *
+	 * @param $removeMarker
+	 */
+	function shiftList() {
+		$rest = array_splice($this->galleysToUpdate, frontpageCreator::maxUpdatesAtOnce);
+		$ids = array_map(function($item) {
+			return $item->galley->getId();
+		}, $rest);
+		$this->continue = array(
+			'galleyIds' =>  $ids,
+			'updateFrontpages' => $this->updateFrontpages
+		);
 	}
 	
 	/**

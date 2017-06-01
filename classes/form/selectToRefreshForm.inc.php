@@ -29,8 +29,6 @@ class selectToReFreshForm extends Form {
 		$this->_journalId = $journalId;
 		$this->supportedTypes = frontpageCreator::supportedTypes;
 		parent::Form($this->_plugin->getTemplatePath() . 'templates/selectToRefreshForm.tpl');
-
-
 	}
 	
 	function display($request = null, $template = null) {;

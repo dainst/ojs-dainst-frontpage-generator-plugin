@@ -43,7 +43,7 @@ class dfmcli extends CommandLineTool {
 		$idlist = array_shift($this->argv);
 		$idlist = array_map('trim', explode(',', $idlist));
 		$idlist = array_filter($idlist, 'is_numeric');
-		if (!$idlist or !count($idlist)) {
+		if (($this->type != 'missing') and (!$idlist or !count($idlist))) {
 			return $this->help("id-list not okay: " . print_r($idlist,1));
 		}
 		$this->idlist = $idlist;

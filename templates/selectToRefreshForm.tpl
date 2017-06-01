@@ -5,6 +5,8 @@
 
 <div id="selectToRefresh">
 
+
+
 <form method="post" action="{plugin_url path="settings"}">
 {include file="common/formErrors.tpl"}
 <h4>{translate key="article.plugins.generic.dainstFrontmatter.idlistjournal"}</h4>

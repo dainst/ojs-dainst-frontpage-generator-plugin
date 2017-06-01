@@ -143,13 +143,32 @@ class dfm extends GenericPlugin {
 		$frontpageCreator = new frontpageCreator($this);
 		$ids = (!is_array($ids)) ? explode(',', $ids) : $ids;
 		$success = $frontpageCreator->runFrontpageUpate($ids, $type, $updateFrontpages);
-		if ($success !== true) { // case of error
-			echo $is_cli ? "ERROR: $success \n" : "<div class='alert alert-danger'>ERROR: $success</div>";
-			echo $frontpageCreator->log->dumpLog(true, false);
-			return;
+
+		if ($is_cli) {
+			echo ($success === true) ? "\nSUCCESS \n" : "\nERROR: $success \n";
+		} else {
+			echo ($success === true) ? '' : "<div class='alert alert-danger'>ERROR: $success</div>";
 		}
-		
-		echo $is_cli ? "\nSUCCESS \n" . $frontpageCreator->log->dumpLog(true, true) : $frontpageCreator->log->dumpLog(true, false);
+
+		echo $frontpageCreator->log->dumpLog(true, $is_cli);
+
+		if ($frontpageCreator->continue) {
+			if ($is_cli) {
+				echo "\n There where to many frontmatters to update them all. Please  enter the following command to continue:\n\n";
+				echo "php plugins/generic/ojs-dainst-frontpage-generator-plugin/dfmcli.php ";
+				echo $frontpageCreator->continue['updateFrontpages'] ? 'update ' : 'add ';
+				echo 'galley ' . implode(',', $frontpageCreator->continue['galleyIds']);
+				echo "\n\n";
+			} else {
+				$templateMgr =& TemplateManager::getManager();
+				$templateMgr->setCacheability(CACHEABILITY_NO_STORE);
+				$templateMgr->assign('continue_ids', implode(',', $frontpageCreator->continue['galleyIds']));
+				$templateMgr->assign('continue_left', count($frontpageCreator->continue['galleyIds']));
+				$templateMgr->assign('continue_updateFrontpages', $frontpageCreator->continue['updateFrontpages']);
+			}
+		}
+
+
 	}
 	
 	/* helping hands */
