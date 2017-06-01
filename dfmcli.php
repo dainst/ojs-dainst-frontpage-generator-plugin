@@ -11,6 +11,7 @@ ini_set('display_errors', 'on');
 //*/
 
 require('tools/bootstrap.inc.php');
+require_once('classes/frontpageCreator.class.php');
 
 class dfmcli extends CommandLineTool {
 	
@@ -19,7 +20,7 @@ class dfmcli extends CommandLineTool {
 	var $type;
 	var $idlist;	
 	var $commands = array('update', 'add');
-	var $types = array('galley', 'article', 'journal', 'missing');
+	var $types = frontpageCreator::supportedTypes;
 	
 
 	/**

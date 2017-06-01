@@ -7,6 +7,14 @@
 	padding: 0.6em
 }
 
+input[type=checkbox] ~ .dainstPluginLog .alert-info {
+	display:none
+}
+
+input[type=checkbox]:checked ~ .dainstPluginLog .alert-info {
+	display:block
+}
+
 .alert .timestamp  {
 	margin-right: 2em
 }
@@ -15,3 +23,6 @@
 	width: 100%
 }
 
+#toggleDebugInfo {
+	display:none
+}

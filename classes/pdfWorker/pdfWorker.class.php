@@ -194,7 +194,7 @@ namespace dfm {
 		 */
 		public function updatePDFMetadata($file) {
 			$this->checkFile($file);
-			$this->logger->log("update updatePDFMetadata: $file ");			
+			$this->logger->log("update PDF-Metadata: $file ");
 		
 			$shell = 'exiftool ' . $this->_pdfMetadataCommand() . ' ' . escapeshellarg($file) . " 2>&1";
 	

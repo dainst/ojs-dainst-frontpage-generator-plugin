@@ -101,7 +101,9 @@ class dfm extends GenericPlugin {
 		$thePath = Request::getBaseUrl() . '/' . $this->pluginPath;
 		$templateMgr =& TemplateManager::getManager();
 		$templateMgr->setCacheability(CACHEABILITY_MUST_REVALIDATE);
-		
+
+		require_once('classes/frontpageCreator.class.php');
+
 		switch ($verb) {
 			case 'settings':
 				$journal =& Request::getJournal();
@@ -137,8 +139,7 @@ class dfm extends GenericPlugin {
 	
 	
 	/* the function itself */ 
-	function startUpdateFrontpages($ids, $type, $updateFrontpages = true, $is_cli = false) {	
-		require_once('classes/frontpageCreator.class.php');
+	function startUpdateFrontpages($ids, $type, $updateFrontpages = true, $is_cli = false) {
 		$frontpageCreator = new frontpageCreator($this);
 		$ids = (!is_array($ids)) ? explode(',', $ids) : $ids;
 		$success = $frontpageCreator->runFrontpageUpate($ids, $type, $updateFrontpages);

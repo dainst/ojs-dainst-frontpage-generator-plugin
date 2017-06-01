@@ -18,7 +18,9 @@ class frontpageCreator {
 	public $tmp_path;
 	
 	public $updateFrontpages = true; // if true first page will be exchanged, otherwise a front matter will be added
-	
+
+	const supportedTypes = array('galley', 'article', 'journal', 'issue', 'dirty');
+
 	function __construct($plugin) {
 		$this->plugin = $plugin;
 		require_once("pdfWorker/logger.class.php");
@@ -48,6 +50,11 @@ class frontpageCreator {
 	function runFrontpageUpate($ids, $type, $updateFrontpages = true) {
 
 		try {
+
+			// type given
+			if (!in_array($type, frontpageCreator::supportedTypes)) {
+				throw new \Exception($type ? "$ID type >>$type<< is not supported!" : "No ID type given!");
+			}
 			
 			// update or replace fm
 			$this->updateFrontpages = $updateFrontpages;
@@ -69,6 +76,8 @@ class frontpageCreator {
 			foreach ($ids as $id) {
 				if ($type == "journal") {
 					$this->getJournalGalleys($id);
+				} elseif ($type == "issue") {
+					$this->getIssueGalleys($id);			
 				} elseif ($type == "article") {
 					$this->getArticleGalleys($id);
 				} elseif ($type == "galley") {
@@ -183,6 +192,21 @@ class frontpageCreator {
 		$this->registerGalleys($galleyDao->getGalleysByArticle($id), $id, $journal);
 	}
 	
+	function getIssueGalleys($id) {
+		$this->log->log('get galleys of issue ' + $id);
+		//$issueDao =& DAORegistry::getDAO('IssueDAO');
+		//PublishedArticleDAO
+		$PublishedArticleDAO =& DAORegistry::getDAO('PublishedArticleDAO');
+		$publishedArticles = $PublishedArticleDAO->getPublishedArticles($id);
+		$journal = false;
+		foreach ($publishedArticles as $publishedArticle) {
+			$this->log->log($publishedArticle->getId());
+			$journal = !$journal ? $this->getJournal($publishedArticle->getJournalId()) : $journal;
+			$this->getArticleGalleys($publishedArticle->getId(), $journal);
+		}
+	}
+
+
 	/**
 	 * registers all galleys of a journal for going to be updated 
 	 * 
@@ -268,32 +292,40 @@ class frontpageCreator {
 	 * @param unknown $galleyItem
 	 */
 	function processItem($galleyItem, $removeMarker = false) {
+
 		$logToken = &$this->log->log('update galley "' . $galleyItem->galley->getLabel() . '" of article "' . $galleyItem->article->getLocalizedTitle() . '"');
 
-		// get journalController
-		$pdfWorker = $this->getPDFWorker($galleyItem);	
-		
-		// create new front matter
-		$newFrontmatterFile = $pdfWorker->createFrontPage();	
+		try {
 
-		// attach frontpage to file
-		$tmpFile = $pdfWorker->updateFrontpage($pdfWorker->fileToUpdate, $newFrontmatterFile, $this->updateFrontpages);
+			// get journalController
+			$pdfWorker = $this->getPDFWorker($galleyItem);
 
-		// update pdf metadata
-		$tmpFile = $pdfWorker->updatePDFMetadata($tmpFile);
-		
-		// now that everythings seems to have worked (otherwise we would not be here but in an exception handler hopefully),
-		// we can copy back the shiny and overwrite the old one...
-		$this->replaceFile($galleyItem, $tmpFile);
-		
-		// if removeMarker is set (we come from the importer most likely)
-		if ($removeMarker) {
-			$this->removeMarker($galleyItem);
+			// create new front matter
+			$newFrontmatterFile = $pdfWorker->createFrontPage();
+
+			// attach frontpage to file
+			$tmpFile = $pdfWorker->updateFrontpage($pdfWorker->fileToUpdate, $newFrontmatterFile, $this->updateFrontpages);
+
+			// update pdf metadata
+			$tmpFile = $pdfWorker->updatePDFMetadata($tmpFile);
+
+			// now that everythings seems to have worked (otherwise we would not be here but in an exception handler hopefully),
+			// we can copy back the shiny and overwrite the old one...
+			$this->replaceFile($galleyItem, $tmpFile);
+
+			// if removeMarker is set (we come from the importer most likely)
+			if ($removeMarker) {
+				$this->removeMarker($galleyItem);
+			}
+
+			// log that marvelous success!
+			$logToken->text .= ' ... success!';
+			$logToken->type = 'success';
+
+		} catch (\Exception $e) {
+			$logToken->text .= ' ... error!' . "\n<br>" . $e->getMessage();
+			$logToken->type = 'warning';
 		}
-
-		// log that marvelous success!
-		$logToken->text .= ' ... success!';
-		$logToken->type = 'success';
 	}
 	
 	/**

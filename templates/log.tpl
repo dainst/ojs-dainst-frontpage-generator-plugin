@@ -13,6 +13,7 @@
 {include file="common/header.tpl"}
 {/strip}
 <h4>Protocol</h4>
+<label for="toggleDebugInfo" class="btn btn-xs btn-default">Show Debug Info</label><input id='toggleDebugInfo' type="checkbox">
 <div class='dainstPluginLog'>
 	{themResults}
 </div>

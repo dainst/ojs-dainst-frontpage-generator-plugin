@@ -17,10 +17,20 @@ class selectToReFreshForm extends Form {
 	private $_plugin;
 	private $_journalId;
 
+	var $supportedTypes;
+
+	/**
+	 * selectToReFreshForm constructor.
+	 * @param $plugin
+	 * @param $journalId
+	 */
 	function selectToReFreshForm(&$plugin, $journalId) {
 		$this->_plugin = $plugin;
 		$this->_journalId = $journalId;
+		$this->supportedTypes = frontpageCreator::supportedTypes;
 		parent::Form($this->_plugin->getTemplatePath() . 'templates/selectToRefreshForm.tpl');
+
+
 	}
 	
 	function display($request = null, $template = null) {;
@@ -34,7 +44,7 @@ class selectToReFreshForm extends Form {
 	function readInputData() {
 		$vars = array(
 			'id' => "str",
-			'type' => array('galley', 'article', 'journal'),
+			'type' => $this->supportedTypes,
 			'replace' => 'bool'
 		);
 		
