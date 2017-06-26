@@ -9,12 +9,6 @@ namespace dfm\pdfWorkers {
 			}
 		}
 		
-		function checkFile($file) {
-			return true;
-		}
-		
-		
-		public $smallMode = false;
 		
 	}
 }
