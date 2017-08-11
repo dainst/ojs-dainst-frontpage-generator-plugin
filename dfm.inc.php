@@ -98,11 +98,13 @@ class dfm extends GenericPlugin {
 		$templateMgr =& TemplateManager::getManager();
 		//$templateMgr->debugging = true;
 		$templateMgr->register_function('themResults', array($this, "showLog"));
-		$thePath = Request::getBaseUrl() . '/' . $this->pluginPath;
+		$theUrl = Request::getBaseUrl() . '/' . $this->pluginPath;
+		$thePath = dirname(dirname(dirname(dirname(__FILE__)))) . '/' . $this->pluginPath;
 		$templateMgr =& TemplateManager::getManager();
 		$templateMgr->setCacheability(CACHEABILITY_MUST_REVALIDATE);
 
 		require_once('classes/frontpageCreator.class.php');
+		require_once('article_picker/article_picker.class.php');
 
 		switch ($verb) {
 			case 'settings':
@@ -111,8 +113,12 @@ class dfm extends GenericPlugin {
 				
 				$templateMgr->register_function('plugin_url', array(&$this, 'smartyPluginUrl'));
 				$templateMgr->register_function('selectJournal', array(&$this, 'selectJournal'));
-				$templateMgr->assign('additionalHeadData', "<link rel='stylesheet' href='$thePath/dfm.css' type='text/css' />\n<script src='$thePath/js/urlExtractor.js' ></script>");
-				
+				$templateMgr->assign('thePath', $thePath);
+				$templateMgr->assign('additionalHeadData', "<link rel='stylesheet' href='$theUrl/dfm.css' type='text/css' />");
+
+                $picker = new \das\article_selector($thePath,$theUrl);
+                $picker->setTemplateEnvironment();
+
 				$this->import('classes.form.selectToRefreshForm');
 				$form = new selectToRefreshForm($this, $journalId);
 				
