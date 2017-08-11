@@ -15,7 +15,6 @@
 	<message key="plugins.generic.as.articlealert"><![CDATA[Please notice that by selecting <b>Article</b> <emph>all</emph> galleys (e.g. PDFs) will get an updated front matter.]]></message>
 	<message key="plugins.generic.as.picker">Pick Items to Update</message>
 	<message key="plugins.generic.as.manually">Insert Items Manually</message>
-
 	<message key="plugins.generic.as.selectObjectType">Choose Object Type</message>
 	<message key="plugins.generic.as.objectType">Object Type</message>
 	<message key="plugins.generic.as.goBack">Go Back..</message>
