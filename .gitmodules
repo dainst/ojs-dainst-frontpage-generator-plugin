@@ -1,7 +1,6 @@
-[submodule "tcpdf"]
+[submodule "lib/tcpdf"]
 	path = lib/tcpdf
 	url = https://github.com/tcpdf-clone/tcpdf
-
-[submodule "php_default_api"]
-    paf = lib/php_default_api
-    url = https://github.com/paflov/php_default_api
+[submodule "lib/php_default_api"]
+	path = lib/php_default_api
+	url = https://github.com/paflov/php_default_api

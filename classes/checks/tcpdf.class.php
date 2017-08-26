@@ -6,8 +6,6 @@ class tcpdf extends check {
     function check() {
         $log = $this->log->info("Check TCPDF Presence");
 
-        $log->info($this->settings['lib_path']);
-
         if (!is_dir($this->settings['lib_path'])) {
             return $log->danger('Lib Path ($this->settings[\'lib_path\']) is not existant or no folder.');
         }
@@ -24,9 +22,7 @@ class tcpdf extends check {
         }
 
         if (file_exists($this->settings['lib_path'] . '/tcpdf/CHANGELOG.TXT')) {
-            $f = fopen($this->settings['lib_path'] . '/tcpdf/CHANGELOG.TXT', 'r');
-            $line = fgets($f);
-            fclose($f);
+            $f = fgets(fopen($this->settings['lib_path'] . '/tcpdf/CHANGELOG.TXT', 'r'));
             $this->log->info('TCPDf Version: ' . $f);
         }
 

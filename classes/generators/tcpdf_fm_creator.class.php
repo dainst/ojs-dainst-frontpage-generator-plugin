@@ -39,7 +39,7 @@
 namespace dfm {
 	class tcpdf_fm_creator extends generator {
 
-	    const dependencies = 'tcpdf';
+	    const dependecies = 'tcpdf';
 
 		function __construct($logger, $settings) {
 			$this->lang = json_decode(file_get_contents($this->settings['files_path'] . '/common.json'));
