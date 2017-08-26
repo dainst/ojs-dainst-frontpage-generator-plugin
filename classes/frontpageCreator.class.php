@@ -1,4 +1,5 @@
 <?php
+namespace dfm;
 class frontpageCreator {
 		
 	public $galleysToUpdate = []; 
@@ -26,7 +27,6 @@ class frontpageCreator {
 
 	function __construct($plugin) {
 		$this->plugin = $plugin;
-		require_once("pdfWorker/logger.class.php");
 		$this->log = new \sometools\logger();
 
 		
@@ -484,7 +484,7 @@ class frontpageCreator {
 		
 		// get journal Controller
 		// some journals (may) need special treatment for example chiron has two different publishers, but we want only print the right one one th frontpage
-		require_once("pdfWorker/pdfWorker.class.php");
+		require_once("pdfWorker/tcpdf_fm_creator.class.php");
 		if (stream_resolve_include_path("pdfWorker/journalSpecific/{$journalAbb}.class.php")) {
 			require_once("pdfWorker/journalSpecific/{$journalAbb}.class.php");
 			$class = "\\dfm\\pdfWorkers\\{$journalAbb}";

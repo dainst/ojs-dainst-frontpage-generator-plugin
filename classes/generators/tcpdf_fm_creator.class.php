@@ -37,51 +37,18 @@
  */
 
 namespace dfm {
-	class pdfWorker {
-		public $settings = array(
-			'tcpdf_path'		=> '',
-			'tmp_path'			=> '',
-			'files_path'		=> ''
-		);
-		
-		/**
-		 * a set of data needed for the frontpage
-		 * it's easier to work from this point on with this, not with OJS-Objects (also, this was created indiependend of the OJS first)
-		 * 
-		 */
-		public $metadata = array(
-			'article_author'	=> '###', 
-			'article_title'		=> '###',
-			'editor'			=> '###',
-			'issn_online'		=> '',
-			'issn_printed'		=> '',
-			'issue_tag'			=> '###',
-			'journal_title'		=> '###',
-			'journal_sub'		=> '',
-			'journal_url'		=> '###',
-			'pages'				=> '###',
-			'pub_id'			=> '###',
-			'publisher'			=> '###',	
-			'url'				=> '###',
-			'urn'				=> '###',
-			'volume'			=> '###',
-			'year'				=> '###',
-			'zenon_id'			=> ''
-		);
-		// '###' -> means missing, will be printed and warning, '' means unset, will not be printed
-		
-		public $smallMode = false; // false: A4 Formatj, true: A5 Format
-		
-		public $lang = array();
-				
-		public $logger;
-		
+	class tcpdf_fm_creator extends generator {
+
+	    const dependencies = 'tcpdf';
+
 		function __construct($logger, $settings) {
-			//include_once($this->_base_path  . 'settings.php');
-			$this->settings = $settings;
-			$this->logger = $logger;
 			$this->lang = json_decode(file_get_contents($this->settings['files_path'] . '/common.json'));
+            parent::__construct($logger, $settings);
 		}
+
+        public $smallMode = false; // false: A4 Formatj, true: A5 Format
+
+        public $lang = array();
 		
 		final function setDefaultMetadata($data) {			
 			foreach ($this->metadata as $key => $value) {
@@ -143,9 +110,8 @@ namespace dfm {
 			if (!defined('K_TCPDF_THROW_EXCEPTION_ERROR')) {
 				define('K_TCPDF_THROW_EXCEPTION_ERROR', true);
 			}
-			require_once($this->settings['tcpdf_path'] . '/tcpdf.php');
 			
-			require_once('daipdf.class.php');
+			require_once('theme.php');
 			//function __construct($orientation='P', $unit='mm', $format='A4', $unicode=true, $encoding='UTF-8', $diskcache=false, $pdfa=false
 			//array(160, 240)
 			$pdf = new \daiPDF($this->smallMode);

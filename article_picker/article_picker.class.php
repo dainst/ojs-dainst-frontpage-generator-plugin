@@ -16,6 +16,13 @@ namespace das {
 
         }
 
+        function handleApiCall() {
+            define('OJS_PRESENT', true);
+            $includePath = $this->path ;
+            include("api/index.php");
+            die();
+        }
+
         private function _js_strings() {
             $strings = ['selectObjectType','goBack', 'objectType'];
             $translations = array();

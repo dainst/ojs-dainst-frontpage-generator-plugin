@@ -11,7 +11,7 @@
     </div>
     <div id="as-mode-input"  class="as-mode" style="display:none">
         <div class="as-headline">{translate key="plugins.generic.dainstFrontmatter.idlistText"}</div>
-        <textarea id="as-input-idlist"></textarea>
+        <textarea id="as-input-idlist" name="idlist"></textarea>
         <div>{translate key="plugins.generic.as.idsAre"}</div>
         <div id="as-input-type">
             <input type="radio" name="type" value="galley"  id="as-input-type-galleys" ><label for="as-input-type-galleys" >Galleys</label>

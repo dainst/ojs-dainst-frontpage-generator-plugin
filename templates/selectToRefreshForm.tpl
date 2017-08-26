@@ -4,7 +4,7 @@
 {/strip}
 
 <div id="selectToRefresh">
-    <form method="post" action="{plugin_url path="settings"}">
+    <form method="post" action="{plugin_url path="generate"}">
         {include file="common/formErrors.tpl"}
         {include file="$thePath/article_picker/article_picker.tpl"}
 

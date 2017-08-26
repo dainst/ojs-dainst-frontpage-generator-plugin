@@ -7,7 +7,13 @@
  * @author Philipp Franck
  *
  */
-class daiPDF extends TCPDF {
+
+namespace dfm;
+
+
+class dai_tcpdf_theme extends \TCPDF {
+
+    const dependencies = 'tcpdf';
 
 	public $metadata = array();
 	
@@ -16,6 +22,20 @@ class daiPDF extends TCPDF {
 	public $settings; // paths!
 	
 	public $smallMode;
+
+    public function __construct($smallmode = false) {
+
+        $this->unitScale = 1;
+        $format = 'A4';
+        if ($smallmode == true) {
+            $this->unitScale = 0.5;
+            $format = 'A5';
+            $this->smallMode = $smallmode;
+        }
+
+
+        parent::__construct('P', 'mm', $format, true, 'UTF-8', false, false);
+    }
 	
 	public function daiInit($lang, $metadata) {
 		$this->importMissingFonts();
@@ -268,19 +288,7 @@ class daiPDF extends TCPDF {
 	}
 	
 
-	public function __construct($smallmode = false) {
-	
-		$this->unitScale = 1;
-		$format = 'A4';
-		if ($smallmode == true) {
-			$this->unitScale = 0.5;
-			$format = 'A5';
-			$this->smallMode = $smallmode;
-		}
-		
 
-		parent::__construct('P', 'mm', $format, true, 'UTF-8', false, false);
-	}
 
 	
 	public function Header() {}

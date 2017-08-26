@@ -1,6 +1,10 @@
 <?php
 
 class ojsinfoapi extends server {
+
+    private $_ojsUser;
+    private $_locale;
+
     function start() {
         // where am I?
         preg_match('#((.+)\/plugins\/(.*)\/article)\_picker#', dirname(__file__), $m);
@@ -8,7 +12,9 @@ class ojsinfoapi extends server {
         $plugin_path = $m[3];
 
         // load OJS
-        require_once($ojs_path . '/tools/bootstrap.inc.php');
+        if (defined(OJS_PRESENT) and OJS_PRESENT) {
+            require_once($ojs_path . '/tools/bootstrap.inc.php');
+        }
 
         // get session
         $sessionManager =& SessionManager::getManager();
@@ -19,7 +25,8 @@ class ojsinfoapi extends server {
             throw new Exception("no user logged in");
         }
 
-        var_dump($this->data);
+        $this->_ojsUser = $session->user;
+        $this->log->debug('access allowed for user ' . $this->_ojsUser->getUsername());
 
     }
 
@@ -30,23 +37,94 @@ class ojsinfoapi extends server {
         $this->return['journals'] = array();
 
         foreach ($journals->records as $record) {
-            $journal =& $journalDao->getJournal($record['journal_id']);
-            $this->return['journals'][$record['journal_id']] = $journal->getLocalizedTitle();
+            if ($this->_isAllowed($record['journal_id'])) {
+                $journal =& $journalDao->getJournal($record['journal_id']);
+                $this->return['journals'][$record['journal_id']] = $journal->getLocalizedTitle();
+            }
+        }
+    }
+
+
+
+    function issues() {
+
+        $journalId = $this->data['journal'];
+
+        $this->return['issues'] = array();
+
+        if (!$this->_isAllowed($journalId)) {
+            return;
+        }
+
+        $issueDAO =& DAORegistry::getDAO('IssueDAO');
+        $result = $issueDAO->getIssues($journalId);
+
+        while ($record = $result->next()) {
+            $title = implode(' | ',
+                array_filter(
+                    array(
+                        $record->getNumber(),
+                        $record->getVolume(),
+                        $record->getYear(),
+                        $record->getLocalizedTitle()
+                    ),
+                    function($item) {return $item !== null; }
+                )
+            );
+
+            $this->return['issues'][$record->getId()] = $title;
         }
     }
 
     function articles() {
 
-        $issue_id = $this->data['issue'];
+        $issueId = $this->data['issue'];
 
-        $PublishedArticleDAO =& DAORegistry::getDAO('PublishedArticleDAO');
-        $publishedArticles = $PublishedArticleDAO->getPublishedArticles($issue_id);
+        $publishedArticleDAO =& DAORegistry::getDAO('PublishedArticleDAO');
+        $publishedArticles = $publishedArticleDAO->getPublishedArticles($issueId);
         foreach ($publishedArticles as $record) {
-            $this->return['articles'][$record->getId()] = $record->getLocalizedTitle();
+            if ($this->_isAllowed($record->getJournalId())) {
+                $this->return['articles'][$record->getId()] = $record->getFirstAuthor() . ': ' . $record->getLocalizedTitle();
+            }
+        }
+    }
+
+
+    function galleys() {
+
+        $articleId = $this->data['article'];
+
+        $articleDAO =& DAORegistry::getDAO('ArticleDAO');
+        $article = $articleDAO->getArticle($articleId);
+
+        $journalId = $article->getJournalId();
+
+        if (!$this->_isAllowed($journalId)) {
+            return;
         }
 
+        $galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
+        $galleys = $galleyDao->getGalleysByArticle($articleId);
 
+
+        foreach ($galleys as $record) {
+            $this->return['galleys'][$record->getId()] = $record->getId() . ' | ' . $record->getGalleyLabel();
+        }
     }
+
+    private function _isAllowed($journalId) {
+        $roleDAO = DAORegistry::getDAO('RoleDAO');
+        $roles = $roleDAO->getRolesByUserId($this->_ojsUser->getId(), $journalId);
+        foreach ($roles as $role) {
+            if (in_array($role->getRolePath(), $this->settings['roleWhitelist'])) {
+                $this->log->debug("journal #$journalId may be accessed by you as " . $role->getRolePath());
+                return true;
+            }
+        }
+        $this->log->debug("no suitable role to edit journal #$journalId");
+        return false;
+    }
+
 
     function finish() {
 

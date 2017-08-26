@@ -31,6 +31,9 @@ import('lib.pkp.classes.plugins.GenericPlugin');
 class dfm extends GenericPlugin {
 	
 	public $user; // will be set by form
+
+	public $settings;
+	public $logger;
 	
 	function register($category, $path) {
 		if (parent::register($category, $path)) {
@@ -79,7 +82,9 @@ class dfm extends GenericPlugin {
 	function getManagementVerbs() {
 		$verbs = array();
 		if ($this->getEnabled()) {
-			$verbs[] = array('settings', 'settings');
+			$verbs[] = array('generate', 'Generate Front Matters');
+            $verbs[] = array('api', 'api');
+            $verbs[] = array('systemcheck', 'System Check');
 		}
 		return parent::getManagementVerbs($verbs);
 	}
@@ -97,17 +102,18 @@ class dfm extends GenericPlugin {
 		$journal =& Request::getJournal();
 		$templateMgr =& TemplateManager::getManager();
 		//$templateMgr->debugging = true;
-		$templateMgr->register_function('themResults', array($this, "showLog"));
+		$templateMgr->register_function('themResults', array($this, "returnLog"));
 		$theUrl = Request::getBaseUrl() . '/' . $this->pluginPath;
 		$thePath = dirname(dirname(dirname(dirname(__FILE__)))) . '/' . $this->pluginPath;
 		$templateMgr =& TemplateManager::getManager();
 		$templateMgr->setCacheability(CACHEABILITY_MUST_REVALIDATE);
 
-		require_once('classes/frontpageCreator.class.php');
-		require_once('article_picker/article_picker.class.php');
+        $this->bootstrap();
+
+        $picker = new \das\article_selector($thePath . '/article_picker/', $theUrl);
 
 		switch ($verb) {
-			case 'settings':
+			case 'generate':
 				$journal =& Request::getJournal();
 				$journalId = ($journal ? $journal->getId() : CONTEXT_ID_NONE);
 				
@@ -116,7 +122,6 @@ class dfm extends GenericPlugin {
 				$templateMgr->assign('thePath', $thePath);
 				$templateMgr->assign('additionalHeadData', "<link rel='stylesheet' href='$theUrl/dfm.css' type='text/css' />");
 
-                $picker = new \das\article_selector($thePath,$theUrl);
                 $picker->setTemplateEnvironment();
 
 				$this->import('classes.form.selectToRefreshForm');
@@ -127,7 +132,7 @@ class dfm extends GenericPlugin {
 					if ($form->validate()) {
 						ob_start();
 						$form->execute();
-						$this->log = ob_get_clean();
+						//$this->log = ob_get_clean(); return it correctly
 						$templateMgr->display(dirname(__FILE__) . '/templates/log.tpl');
 					} else {
 						$form->display();
@@ -136,6 +141,20 @@ class dfm extends GenericPlugin {
 					$form->display();
 				}
 				return true;
+
+            case 'api':
+                $picker->handleApiCall();
+                return true;
+
+            case 'systemcheck':
+                $checker = new \dfm\systemChecker($this->logger, $this->settings);
+                $checker->check();
+                $this->logger->log($this->settings);
+                $templateMgr->register_function('plugin_url', array(&$this, 'smartyPluginUrl'));
+                $templateMgr->assign('additionalHeadData', "<link rel='stylesheet' href='$theUrl/dfm.css' type='text/css' />");
+                $templateMgr->display(dirname(__FILE__) . '/templates/system_check.tpl');
+                return true;
+
 			default:
 				// Unknown management verb
 				assert(false);
@@ -191,10 +210,73 @@ class dfm extends GenericPlugin {
 		
 	}
 	
-	public $log; // @TODO replace with contact to $logger object
-	function showLog() {
-		echo $this->log;
+	function returnLog() {
+		return $this->logger->dumpLog(true);
 		
 	}
+
+	function bootstrap() {
+        $templateMgr =& TemplateManager::getManager();
+
+        $templateMgr =& TemplateManager::getManager();
+        $templateMgr->setCacheability(CACHEABILITY_NO_STORE);
+
+        $this->settings = array(
+            'tmp_path'		=> Config::getVar('dainst', 'tmpPath'),
+            'lib_path'		=> $this->pluginPath . '/lib',
+            'files_path'	=> $this->pluginPath . '/classes/pdfWorker/files'
+        );
+
+
+		$dependenciesString = '';
+
+        $classPaths = array(
+            'classes' => '/',
+            'checks' => '/checks/',
+            'generators' => '/generators/',
+            'journalpresets' => '/journalpresets/',
+            'themes' => '/themes/',
+
+        );
+
+        foreach ($classPaths as $classClass => $classPath) {
+            $fullClassPath = $this->pluginPath . '/classes' . $classPath;
+            //echo "\n <h3>fullClassPath: $fullClassPath </h3>\n";
+            $registry[$classClass] = glob($fullClassPath . '*');
+            foreach ($registry[$classClass] as $filename) {
+                if (!is_file($filename)) {
+                    continue;
+                }
+                require_once($filename);
+                $classname = "\dfm\\" . str_replace(array($fullClassPath, '.class.php'), '', $filename);
+
+                $this->settings['registry'][$classClass][] = $classname;
+
+                //echo "\n\n[$filename] -> [$classname]";
+                if (class_exists($classname)) {
+                    if (defined("$classname::dependencies")) {
+                        //echo "\n<span style='color:green'> $classname: " . $classname::dependencies . '</span>';
+                        $dependenciesString .= $classname::dependencies . '|';
+                    } else {
+                        //echo "\n<span style='color:yellow'> $classname: no dependencies</span>";
+					}
+                } else {
+                    //echo "\n<span style='color:red'>$classname: ERROR</span>";
+                }
+
+            }
+        }
+
+
+		//echo "\n\n<strong>$dependenciesString</strong>";
+		$this->settings['dependencies'] = array_filter(array_unique(explode('|', $dependenciesString)), function($elem) {return ($elem !== '');});
+        
+		require_once('article_picker/article_picker.class.php');
+
+		$this->logger = new \dfm\logger();
+		$this->logger->logTimestamps = false;
+
+    }
+
 }
 ?>

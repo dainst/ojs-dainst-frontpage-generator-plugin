@@ -1,6 +1,9 @@
 var state = -1; // 0: journals, 1: issues, 2: articles, 3:issues
 var mode = -1;
 var states = ['journals', 'issues', 'articles', 'galleys'];
+var queries = ['journal', 'issue', 'article'];
+
+var current = {};
 
 var selected = [];
 
@@ -15,34 +18,25 @@ var titles = {
 
 var tabIsPicker = true;
 
-function getSet(set) {
-    var set = states[state];
-    console.log("!", set);
+function getSet(id) {
+
+    var data = {}
+    data.task = states[state];
+    if (typeof queries[state - 1] !== "undefined") {
+        data[queries[state - 1]] = current[queries[state - 1]];
+    }
+
+
+    console.log("!", data);
 
     // to be replaced by jQuery.get
-    setTimeout(function(){fillMenu(testData());},10)
+    jQuery.get(
+        'api',
+       data,
+        fillMenu
+    );
 }
 
-function testData() {
-    return {
-        "articles": {
-            "156": "ein titel",
-            "645": "zweiter title",
-            "112": "blabla"
-        },
-        "issues": {
-            "123": "1/210",
-            "654": "2/210"
-        },
-        "journals": {
-            "978": "eins",
-            "1":   "zwie"
-        },
-        "galleys": {
-            "1": "GALLERY"
-        }
-    }
-}
 
 function start() {
     state = -1;
@@ -57,7 +51,7 @@ function fillMenu(data) {
     jQuery('#as-select').empty();
 
     var set = states[state];
-    console.log('fill with',set,data[set]);
+    console.log('fill with',set,data);
 
     var title = jQuery('#as-select').append(jQuery('<option class="as-select-headline" value="#">' + set + '</option>'));
     if (state > 0) {
@@ -107,7 +101,9 @@ function filter(evt) {
 
 
 function goBack() {
-    console.log(state);
+
+    delete current[queries[state]];
+    console.log(state, current);
     if (state > 0) {
         state -= 1;
         getSet()
@@ -125,6 +121,10 @@ function select() {
     }
 
     var id = selection.val();
+
+    if (typeof queries[state] !== "undefined") {
+        current[queries[state]] = id;
+    }
 
     console.log(state, mode);
     if (mode == -1) {

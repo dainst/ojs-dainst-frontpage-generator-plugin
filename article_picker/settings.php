@@ -8,5 +8,11 @@ $serverclass 		= 'ojsinfoapi';
 
 // settings for the api
 $settings = array(
+    "roleWhitelist" => array(
+        'admin',
+        'manager',
+        'editor',
+        'sectionEditor',
+        'layoutEditor')
 );
 ?>
