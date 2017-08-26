@@ -1,6 +1,6 @@
 <?php
 namespace dfm;
-class frontpageCreator {
+class processor {
 		
 	public $galleysToUpdate = []; 
 	/* contains arrays in the form of: 

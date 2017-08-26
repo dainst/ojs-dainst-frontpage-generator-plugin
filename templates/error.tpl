@@ -2,7 +2,7 @@
     {assign var=pageTitle value="plugins.generic.dainstFrontmatter.resultsTitle"}
     {include file="common/header.tpl"}
 {/strip}
-<h4>{translate key="plugins.generic.dainstFrontmatter.systemCheck"}</h4>
+<h4>{translate key="plugins.generic.dainstFrontmatter.error"}</h4>
 <div class='dainstPluginLog'>
     {themResults}
 </div>

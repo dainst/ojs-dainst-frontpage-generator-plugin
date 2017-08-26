@@ -11,7 +11,7 @@ ini_set('display_errors', 'on');
 //*/
 
 require('tools/bootstrap.inc.php');
-require_once('classes/frontpageCreator.class.php');
+require_once('classes/processor.class.php');
 
 class dfmcli extends CommandLineTool {
 	

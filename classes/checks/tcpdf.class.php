@@ -16,7 +16,7 @@ class tcpdf extends check {
 
         try {
             require_once($this->settings['lib_path'] . '/tcpdf/tcpdf.php');
-            $tcpdf = new TCPDF();
+            $tcpdf = new \TCPDF();
         } catch (\Exception $e) {
             return $log->danger('Could not initialize tcpdf.');
         }
