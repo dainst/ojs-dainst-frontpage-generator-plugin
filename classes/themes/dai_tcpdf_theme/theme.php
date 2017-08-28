@@ -69,9 +69,11 @@ class dai_tcpdf_theme extends \TCPDF {
 	
 		// get unitScale
 		$k = $this->unitScale;
-		
+
+		$svg = '@' . file_get_contents("{$this->settings['files_path']}/dailogo.svg");
+
 		$this->ImageSVG(
-			"{$this->settings['files_path']}/dailogo.svg" /*$file*/, 
+		    $svg /*$file*/,
 			$this->smallMode ? 96.2 : 114 /*$x*/, 
 			15 * $k /*$y*/, 
 			'' /*$w*/, 

@@ -6,8 +6,7 @@
 <div id="selectToRefresh">
     <form method="post" action="{plugin_url path="generate"}">
         {include file="common/formErrors.tpl"}
-        {include file="$thePath/article_picker/article_picker.tpl"}
-
+        {article_picker}
         <input type="checkbox" name="replace" checked="checked" id="checkReplace"><label for="checkReplace">{translate key="plugins.generic.dainstFrontmatter.button.replace"}</label><br>
         <br/>
         <input type="submit" name="save" class="button defaultButton" value="{translate key="plugins.generic.dainstFrontmatter.button.update"}"/>

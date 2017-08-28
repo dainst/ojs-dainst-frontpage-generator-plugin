@@ -108,41 +108,40 @@ class dfm extends GenericPlugin {
 		$templateMgr->register_function('themResults', array($this, "returnLog"));
         $templateMgr->register_function('plugin_url', array(&$this, 'smartyPluginUrl'));
         $templateMgr->assign('additionalHeadData', "<link rel='stylesheet' href='$theUrl/dfm.css' type='text/css' />");
-        $theUrl = Request::getBaseUrl() . '/' . $this->pluginPath;
-		$thePath = dirname(dirname(dirname(dirname(__FILE__)))) . '/' . $this->pluginPath;
 		$templateMgr =& TemplateManager::getManager();
 		$templateMgr->setCacheability(CACHEABILITY_MUST_REVALIDATE);
+        $templateMgr->assign('thePath', $thePath);
 
         $this->settings = array(
             'tmp_path'		=> Config::getVar('dainst', 'tmpPath'),
             'lib_path'		=> $this->pluginPath . '/lib',
             'dfm_path'		=> $this->pluginPath,
-            'files_path'	=> $this->pluginPath . '/classes/pdfWorker/files'
+            'files_path'	=> $this->pluginPath . '/classes/pdfWorker/files',
+			'full_path'		=> $thePath,
+			'full_url'		=> $theUrl
         );
 
+        // load dfm stuff
         require_once('classes/loader.class.php');
-
         $loader = new \dfm\loader();
-
         if (!$loader->load($this->logger, $this->settings)) {
         	$verb = 'error';
 		}
-
-        // todo include in the rest?
-        require_once('article_picker/article_picker.class.php');
-        $picker = new \das\article_selector($thePath . '/article_picker/', $theUrl);
 
 		switch ($verb) {
 			case 'generate':
 				$journal =& Request::getJournal();
 				$journalId = ($journal ? $journal->getId() : CONTEXT_ID_NONE);
-				
-				$templateMgr->register_function('selectJournal', array(&$this, 'selectJournal'));
-				$templateMgr->assign('thePath', $thePath);
 
-                $picker->setTemplateEnvironment();
+                $pickerloader = new \dfm\ojs2ui($this->logger, $this->settings);
 
-				$this->import('classes.form.selectToRefreshForm');
+                if (!$pickerloader->load()) {
+                	$this->logger->danger("Article Picker not Found");
+                    $templateMgr->display(dirname(__FILE__) . '/templates/error.tpl');
+                    return true;
+				}
+
+                $this->import('classes.form.selectToRefreshForm');
 				$form = new selectToRefreshForm($this, $journalId);
 				
 				if (Request::getUserVar('save')) {
@@ -161,7 +160,7 @@ class dfm extends GenericPlugin {
 				return true;
 
             case 'api':
-                $picker->handleApiCall();
+                //$picker->handleApiCall();
                 return true;
 
             case 'systemcheck':
@@ -217,18 +216,7 @@ class dfm extends GenericPlugin {
 	}
 	
 	/* helping hands */
-	
-	function selectJournal() {
-		$journalDao =& DAORegistry::getDAO('JournalDAO');
-		$r = '<select id="dfm_journalselect">';
-		$r .= '<option value="-1">--select journal--</option>';
-		foreach ($journalDao->getJournalTitles(true) as $id => $title) {
-			$r .= "<option value='$id'>$title</option>";
-		}
-		$r .= '</select>';
-		return $r;
-		
-	}
+
 	
 	function returnLog() {
         if (!is_null($this->logger)) {

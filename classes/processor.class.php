@@ -1,6 +1,8 @@
 <?php
 namespace dfm;
 class processor {
+
+    const dependencies = 'ojs2';
 		
 	public $galleysToUpdate = []; 
 	/* contains arrays in the form of: 

@@ -10,6 +10,14 @@ class systemChecker extends abstraction {
     }
 
     function check() {
+
+        if (!isset($this->settings['dependencies'])) {
+            $this->log->warning('No dependencies found; this is most likely a Problem.');
+            return;
+        }
+
+        $result = true;
+
         foreach ($this->settings['dependencies'] as $test) {
             $class_name = '\dfm\\' . $test;
 
@@ -19,8 +27,16 @@ class systemChecker extends abstraction {
             }
 
             $test = new $class_name($this->log, $this->settings);
-            $test->check();
+            $result = $result and $test->check();
         }
+
+
+        if ($result) {
+            $this->log->success("All System Checks passed.");
+        } else {
+            $this->log->danger("Some System Checks failed.");
+        }
+
     }
 
 

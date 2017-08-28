@@ -7,27 +7,30 @@ class tcpdf extends check {
         $log = $this->log->info("Check TCPDF Presence");
 
         if (!is_dir($this->settings['lib_path'])) {
-            return $log->danger('Lib Path ($this->settings[\'lib_path\']) is not existant or no folder.');
+            $log->danger('Lib Path ($this->settings[\'lib_path\']) is not existant or no folder.');
+            return false;
         }
 
         if (!file_exists($this->settings['lib_path'] . '/tcpdf/tcpdf.php')) {
-            return $log->danger('TCPDF not found');
+            $log->danger('TCPDF not found');
+            return false;
         }
 
         try {
             require_once($this->settings['lib_path'] . '/tcpdf/tcpdf.php');
             $tcpdf = new \TCPDF();
         } catch (\Exception $e) {
-            return $log->danger('Could not initialize tcpdf.');
+            $log->danger('Could not initialize tcpdf.');
+            return false;
         }
 
         if (file_exists($this->settings['lib_path'] . '/tcpdf/CHANGELOG.TXT')) {
             $f = fgets(fopen($this->settings['lib_path'] . '/tcpdf/CHANGELOG.TXT', 'r'));
-            $this->log->info('TCPDf Version: ' . $f);
+            $log->info('Version: ' . $f);
         }
 
-
-        return $log->success('OK');
+        $log->success('OK');
+        return true;
 
 
     }
