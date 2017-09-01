@@ -66,7 +66,7 @@ class processor {
 			$this->log->log($updateFrontpages ? 'replace front matter mode' : 'add front matter mode');
 			
 			// get and clean tmpFolder
-			$this->tmp_path = Config::getVar('dainst', 'tmpPath');
+			$this->tmp_path = Config::getVar('dainst', 'tmpPath'); // TODO replace by $settings setting
 			$this->log->debug("tmp path: ". $this->tmp_path);
 			if (!is_dir($this->tmp_path)) {
 				throw new \Exception("No proper tmp path defined: " . $this->tmpPath);

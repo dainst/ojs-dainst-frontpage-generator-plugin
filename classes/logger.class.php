@@ -52,16 +52,18 @@ class logger {
     function info($string) {
         return  $this->_pushlog($string, 'info');
     }
-
-    /**
-     * store generic log information
-     *
-     *
-     * @param <string> $string
-     * @param <string> $type (default|warning|danger|success|...)
-     */
     function log($string, $type = 'info') {
         return $this->_pushlog($string, $type);
+    }
+
+    function import($list, $type = 'info') {
+        if (is_array($list) and count($list)) {
+            foreach ($list as $item) {
+                return $this->_pushlog($item, $type);
+            }
+        } else if (!is_array($list)) {
+            return $this->_pushlog($list, $type);
+        }
     }
 
     private function _pushlog($string, $type) {

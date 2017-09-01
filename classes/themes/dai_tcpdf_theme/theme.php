@@ -70,7 +70,7 @@ class dai_tcpdf_theme extends \TCPDF {
 		// get unitScale
 		$k = $this->unitScale;
 
-		$svg = '@' . file_get_contents("{$this->settings['files_path']}/dailogo.svg");
+		$svg = '@' . file_get_contents("{$this->settings->files_path}/dailogo.svg");
 
 		$this->ImageSVG(
 		    $svg /*$file*/,
@@ -178,7 +178,7 @@ class dai_tcpdf_theme extends \TCPDF {
 				if (!is_writable("{$this->settings['tcpdf_path']}/fonts")) {
 					throw new \Exception("TCPDF fonts directory not writable");
 				}
-				if (TCPDF_FONTS::addTTFfont("{$this->settings['files_path']}/$font.ttf", 'TrueTypeUnicode', 32) === false) {
+				if (TCPDF_FONTS::addTTFfont("{$this->settings->files_path}/$font.ttf", 'TrueTypeUnicode', 32) === false) {
 					$this->logger->warning("font $font not installed");
 					$success = false;
 				} else {

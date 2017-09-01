@@ -2,7 +2,7 @@
 namespace dfm;
 
 class dai_tcpdf_theme extends abstraction {
-    const dependencies = 'tcpdf';
-    const generator = 'tcpdf_fm_creator';
+    const dependencies = 'tcpdf_fm_creator';
+    const title = 'DAI Default Front Matter';
 }
 ?>

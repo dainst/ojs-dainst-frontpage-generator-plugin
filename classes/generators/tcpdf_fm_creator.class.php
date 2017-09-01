@@ -40,9 +40,10 @@ namespace dfm {
 	class tcpdf_fm_creator extends generator {
 
 	    const dependencies = 'tcpdf|pdftk|exiftool';
+	    const title = 'TCPDF Frontpage Creator';
 
 		function __construct($logger, $settings) {
-			$this->lang = json_decode(file_get_contents($this->settings['files_path'] . '/common.json'));
+			//$this->lang = json_decode(file_get_contents($this->settings->files_path . '/common.json')); @ TODO put somwhere else
             parent::__construct($logger, $settings);
 		}
 
@@ -99,7 +100,7 @@ namespace dfm {
 		}
 				
 		function getTmpFileName() {
-			return $this->settings['tmp_path'] . '/' . md5(microtime() . rand()) . '.pdf';
+			return $this->settings->tmp_path . '/' . md5(microtime() . rand()) . '.pdf';
 		}
 		
 		function createPDFObject() {
@@ -218,7 +219,7 @@ namespace dfm {
 		}
 		
 		public function cleanTmpFolder() {
-			array_map('unlink', glob($this->settings['tmp_path'] . '/*'));
+			array_map('unlink', glob($this->settings->tmp_path . '/*'));
 		}
 		
 	}

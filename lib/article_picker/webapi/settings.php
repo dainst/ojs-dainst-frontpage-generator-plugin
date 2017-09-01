@@ -3,7 +3,7 @@
 $debugmode 		    = true;
 $errorReporting 	= false;
 $allowedIps		    = array();
-$allowedSets 		= array('GET');
+$allowedSets 		= array('POST');
 $serverclass 		= 'ojsinfoapi';
 
 // settings for the api

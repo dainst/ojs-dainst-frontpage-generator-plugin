@@ -39,6 +39,7 @@ class selectToReFreshForm extends Form {
 	function execute() {
 		return  $this->_plugin->startUpdateFrontpages($this->getData('idlist'), $this->getData('type'), $this->getData('replace'));
 	}
+
 	
 	function readInputData() {
 		$vars = array(

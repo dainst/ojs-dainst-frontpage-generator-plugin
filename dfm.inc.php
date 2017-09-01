@@ -100,86 +100,115 @@ class dfm extends GenericPlugin {
 		if (!parent::manage($verb, $args, $message, $messageParams)) return false;
 
         $theUrl = Request::getBaseUrl() . '/' . $this->pluginPath;
-        $thePath = dirname(dirname(dirname(dirname(__FILE__)))) . '/' . $this->pluginPath;
+        $ojsPath = dirname(dirname(dirname(dirname(__FILE__))));
+
+        $journal =& Request::getJournal();
+        $journalId = ($journal ? $journal->getId() : CONTEXT_ID_NONE);
 
 		$journal =& Request::getJournal();
 		$templateMgr =& TemplateManager::getManager();
+        $templateMgr->setCacheability(CACHEABILITY_MUST_REVALIDATE);
 		//$templateMgr->debugging = true;
 		$templateMgr->register_function('themResults', array($this, "returnLog"));
         $templateMgr->register_function('plugin_url', array(&$this, 'smartyPluginUrl'));
+        $templateMgr->register_modifier('get_title', array(&$this, 'getModuleTitle'));
+        $templateMgr->register_modifier('get_availability', array(&$this, 'getModuleAvailability'));
         $templateMgr->assign('additionalHeadData', "<link rel='stylesheet' href='$theUrl/dfm.css' type='text/css' />");
-		$templateMgr =& TemplateManager::getManager();
-		$templateMgr->setCacheability(CACHEABILITY_MUST_REVALIDATE);
-        $templateMgr->assign('thePath', $thePath);
+        $templateMgr->assign('thePath', $ojsPath . $this->pluginPath); // we need this?
 
-        $this->settings = array(
-            'tmp_path'		=> Config::getVar('dainst', 'tmpPath'),
-            'lib_path'		=> $this->pluginPath . '/lib',
-            'dfm_path'		=> $this->pluginPath,
-            'files_path'	=> $this->pluginPath . '/classes/pdfWorker/files',
-			'full_path'		=> $thePath,
-			'full_url'		=> $theUrl
+		$dfm_dr = ($verb != 'systemcheck') ? $this->getSetting(CONTEXT_ID_NONE, 'dfm_dr') : '';
+		$theme = $this->getSetting(CONTEXT_ID_NONE, 'dfm_theme');
+
+        $this->settings = (object) array(
+            'tmp_path'				=> Config::getVar('dainst', 'tmpPath'),
+            'lib_path'				=> $this->pluginPath . '/lib',
+            'dfm_path'				=> $this->pluginPath,
+            'files_path'			=> $this->pluginPath . '/classes/pdfWorker/files',
+			'ojs_path'				=> $ojsPath,
+			'url'					=> $theUrl,
+			'dependencies_resolved' => is_null($dfm_dr) ? array() : $dfm_dr,
+			'registry'				=> array(),
+			'theme'					=> $theme
         );
 
-        // load dfm stuff
-        require_once('classes/loader.class.php');
-        $loader = new \dfm\loader();
-        if (!$loader->load($this->logger, $this->settings)) {
-        	$verb = 'error';
-		}
+        try {
 
-		switch ($verb) {
-			case 'generate':
-				$journal =& Request::getJournal();
-				$journalId = ($journal ? $journal->getId() : CONTEXT_ID_NONE);
+			// load dfm stuff
+			require_once('classes/loader.class.php');
+			$loader = new \dfm\loader();
+			if (!$loader->load($this->logger, $this->settings)) {
+                throw new Exception("Error Loading DFM");
+			}
+			// if we had no system check results stored, store them for next time
+			if (is_null($dfm_dr)) {
+				$dfm_dr = $this->updateSetting(CONTEXT_ID_NONE, 'dfm_dr', $this->settings->dependencies_resolved);
+			}
 
-                $pickerloader = new \dfm\ojs2ui($this->logger, $this->settings);
+			$pickerloader = new \dfm\ojs2ui($this->logger, $this->settings);
 
-                if (!$pickerloader->load()) {
-                	$this->logger->danger("Article Picker not Found");
-                    $templateMgr->display(dirname(__FILE__) . '/templates/error.tpl');
-                    return true;
-				}
+			switch ($verb) {
 
-                $this->import('classes.form.selectToRefreshForm');
-				$form = new selectToRefreshForm($this, $journalId);
-				
-				if (Request::getUserVar('save')) {
-					$form->readInputData();
-					if ($form->validate()) {
-						ob_start();
-						$form->execute();
-						//$this->log = ob_get_clean(); return it correctly
-						$templateMgr->display(dirname(__FILE__) . '/templates/log.tpl');
-					} else {
-						$form->display();
-					}
-				} else {					
+				case 'settings':
+					$this->import('classes.form.settingsForm');
+					$form = new settingsForm($this, $journalId);
+
+                    if (Request::getUserVar('save')) {
+                        $form->readInputData();
+                        if ($form->validate()) {
+                            $this->settings->theme = $form->execute();
+                            $this->updateSetting(CONTEXT_ID_NONE, 'dfm_theme', $theme);
+                        }
+                    }
+
+					$templateMgr->assign('settings', (array) $this->settings);
 					$form->display();
-				}
-				return true;
+                    break;
 
-            case 'api':
-                //$picker->handleApiCall();
-                return true;
+				case 'generate':
+					if (!$pickerloader->load()) {
+						throw new Exception("Article Picker not Found");
+					}
 
-            case 'systemcheck':
-                $checker = new \dfm\systemChecker($this->logger, $this->settings);
-                $checker->check();
-                $this->logger->log($this->settings);
-                $templateMgr->display(dirname(__FILE__) . '/templates/system_check.tpl');
-                return true;
+					$this->import('classes.form.selectToRefreshForm');
+					$form = new selectToRefreshForm($this, $journalId);
 
-			case 'error':
-                $templateMgr->display(dirname(__FILE__) . '/templates/error.tpl');
-                return true;
+					if (Request::getUserVar('save')) {
+						$form->readInputData();
+						if ($form->validate()) {
+							ob_start();
+							$form->execute();
+							//$this->log = ob_get_clean(); return it correctly
+							$templateMgr->display(dirname(__FILE__) . '/templates/log.tpl');
+							break;
+						}
+					}
+                    $templateMgr->assign('settings', (array) $this->settings);
+					$form->display();
+					break;
 
-			default:
-				// Unknown management verb
-				assert(false);
-				return false;
+				case 'api':
+					$pickerloader->load();
+					$pickerloader->handleApiCall();
+                    break;
+
+				case 'systemcheck':
+					// systemcheck is performed by loader, we just need to show results
+                    $templateMgr->assign('settings', (array) $this->settings);
+					$templateMgr->display(dirname(__FILE__) . '/templates/system_check.tpl');
+                    break;
+
+				default:
+                    throw new Exception('Unknown management verb');
+			}
+
+        } catch (Exception $e) {
+        	$this->logger->danger($e->getMessage());
+            $templateMgr->display(dirname(__FILE__) . '/templates/error.tpl');
 		}
+        return true;
 	}
+
+
 	
 	
 	/* the function itself */ 
@@ -222,9 +251,20 @@ class dfm extends GenericPlugin {
         if (!is_null($this->logger)) {
             return $this->logger->dumpLog(true);
         } else {
-            "<unknown error>";
+            return "[unknown error]";
         }
 	}
+
+	function getModuleTitle($input) {
+        $sc = new \dfm\systemChecker($this->logger, $this->settings);
+
+        echo $sc->getTitle($input);
+	}
+
+    function getModuleAvailability($input) {
+        $sc = new \dfm\systemChecker($this->logger, $this->settings);
+        return $sc->getAvailability($input);
+    }
 
 
 }

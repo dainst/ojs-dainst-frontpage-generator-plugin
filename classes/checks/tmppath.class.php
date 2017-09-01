@@ -8,27 +8,27 @@ class tmppath extends check {
 
         $log = $this->log->info("Check Tmp folder");
 
-        if (!isset($this->settings['tmp_path'])) {
+        if (!isset($this->settings->tmp_path)) {
             $log->danger('Tmp folder not set.');
             return false;
         }
 
-        $log->info($this->settings['tmp_path']);
+        $log->info($this->settings->tmp_path);
 
-        if (!is_dir($this->settings['tmp_path'])) {
+        if (!is_dir($this->settings->tmp_path)) {
             $log->danger('is not existant or no folder.');
             return false;
         }
 
-        if (!is_writable($this->settings['tmp_path'])) {
+        if (!is_writable($this->settings->tmp_path)) {
             false;
             return $log->danger('is not writable.');
         }
 
-        $freesspace = disk_free_space($this->settings['tmp_path']);
+        $freesspace = disk_free_space($this->settings->tmp_path);
 
         if ($freesspace < 500 * 1024 *1024) {
-            $this->log->warning("only $this->_convertBytes($freesspace) left on temp folder ({$this->settings['tmp_path']})");
+            $this->log->warning("only $this->_convertBytes($freesspace) left on temp folder ({$this->settings->tmp_path})");
         }
 
         $log->success('OK');

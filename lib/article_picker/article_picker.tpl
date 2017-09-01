@@ -1,11 +1,12 @@
 <div id="as">
     <div id="as-tabs">
-        <a href='#' id='as-tab-picker' class="as-tabs-selected">{translate key="plugins.generic.as.picker"}</a>
-        <a href='#' id='as-tab-input' class="">{translate key="plugins.generic.as.manually"}</a>
+        <a id='as-tab-picker' class="as-tabs-selected">{translate key="plugins.generic.as.picker"}</a>
+        <a id='as-tab-input' class="">{translate key="plugins.generic.as.manually"}</a>
     </div>
     <div id="as-mode-picker" class="as-mode" style="display:block">
         <div class="as-headline"></div>
-        <select id="as-select"></select><br>
+        <div id="as-error" class="alert alert-danger" style="display:none">{translate key="plugins.generic.as.apierror"}</div>
+        <select id="as-select" size="6"></select><br>
         <input id="as-filter" placeholder="filter">
         <ul id="as-idlist"></ul>
     </div>

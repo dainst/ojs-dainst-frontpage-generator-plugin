@@ -24,4 +24,8 @@
 	<message key="plugins.generic.dainstFrontmatter.button.replace"><![CDATA[<b>Replace</b> Front Matter]]>]]></message>
 
 	<message key="plugins.generic.dainstFrontmatter.button.test">Statustest</message>
+
+
+
+	<message key="plugins.generic.dainstFrontmatter.settings">Settings</message>
 </locale>

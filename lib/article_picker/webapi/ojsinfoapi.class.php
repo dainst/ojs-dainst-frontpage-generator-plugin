@@ -5,6 +5,13 @@ class ojsinfoapi extends server {
     private $_ojsUser;
     private $_locale;
 
+    function __construct($data, $logger, array $settings = array()) {
+
+        parent::__construct($data, $logger, $settings);
+        $this->log->log('>>>' . print_r($this->data,1));
+        $this->log->log('>>>' . print_r($_POST,1));
+    }
+
     function start() {
         // where am I?
         preg_match('#((.+)\/plugins\/(.*)\/article)\_picker#', dirname(__file__), $m);
@@ -49,6 +56,8 @@ class ojsinfoapi extends server {
     function issues() {
 
         $journalId = $this->data['journal'];
+
+        $this->log->log('a' . print_r($this->data,1));
 
         $this->return['issues'] = array();
 
