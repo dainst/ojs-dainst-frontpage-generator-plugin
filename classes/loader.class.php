@@ -74,7 +74,7 @@ class loader {
                         }
 
                     } else {
-                        throw new \Exception("PHP Error: Class [$fullclassname] not Found.");
+                        throw new \Exception("Error: Class [$fullclassname] not Found.");
                     }
 
                 }

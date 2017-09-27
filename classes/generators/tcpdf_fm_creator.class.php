@@ -15,14 +15,12 @@
  * 
  * 
  * 		try {
- * 
- * 			$pdfWorker->fileToUpdate = $oldFile;
- * 
+ *
  *			// create new front matter
  *			$newFrontmatterFile = $pdfWorker->createFrontPage();	
  *
  *			// attach frontpage to file
- *			$tmpFile = $pdfWorker->updateFrontpage($pdfWorker->fileToUpdate, $newFrontmatterFile);
+ *			$tmpFile = $pdfWorker->updateFrontpage($oldFile, $newFrontmatterFile);
  *		
  *			// update pdf metadata
  *			$newFile = $pdfWorker->updatePDFMetadata($tmpFile);
@@ -58,15 +56,8 @@ namespace dfm {
 				$this->metadata['issue_tag'] = "{$this->metadata['volume']} • {$this->metadata['year']}";
 			}
 		}
-		
-		/**
-		 * to be overwritten
-		 * @param unknown $data
-		 */
-		function setMetadata($data) {
-			
-		}
-		
+
+
 		/**
 		 * checks if metdata is set, else raises an error
 		 */
@@ -84,7 +75,6 @@ namespace dfm {
 		 */
 		function createMetadata($data) {
 			$this->setDefaultMetadata($data);
-			$this->setMetadata($data);
 			$this->checkMetadata();
 		}
 		

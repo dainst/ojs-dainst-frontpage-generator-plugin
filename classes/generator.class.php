@@ -36,8 +36,14 @@ class generator extends abstraction {
     }
 
     function setTheme() {
+        if (!($this->settings->theme)) {
+            throw new \Exception("Theme not set!");
+        }
         $tclass = '\dfm\\' . $this->settings->theme;
         $this->log->log("selected theme: $tclass");
+        if (!class_exists($tclass)) {
+            throw new \Exception("Theme $tclass does not exist");
+        }
         $theme = new $tclass($this->log, $this->settings);
         $this->theme = $theme;
     }

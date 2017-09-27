@@ -3,7 +3,6 @@ namespace dfm;
 
 class tmppath extends check {
 
-
     function check() {
 
         $log = $this->log->info("Check Tmp folder");
@@ -21,8 +20,8 @@ class tmppath extends check {
         }
 
         if (!is_writable($this->settings->tmp_path)) {
-            false;
-            return $log->danger('is not writable.');
+            $log->danger('is not writable.');
+            return false;
         }
 
         $freesspace = disk_free_space($this->settings->tmp_path);
@@ -33,7 +32,6 @@ class tmppath extends check {
 
         $log->success('OK');
         return true;
-
 
     }
 
