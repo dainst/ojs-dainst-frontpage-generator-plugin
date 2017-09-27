@@ -4,6 +4,9 @@ class generator extends abstraction {
 
     const dependencies = "tmppath";
 
+    public $theme;
+    public $journalpreset;
+
     /**
      * a set of data needed for the frontpage
      * it's easier to work from this point on with this, not with OJS-Objects (also, this was created indiependend of the OJS first)
@@ -48,6 +51,47 @@ class generator extends abstraction {
         $this->theme = $theme;
     }
 
+    function setJournalPreset($jps) {
+        if (!in_array($jps, $this->settings->registry['journalpresets'])) {
+            return;
+        }
+        $tclass = '\dfm\\' . $jps;
+        $this->log->log("selected JournalPreset: $tclass");
+        if (!class_exists($tclass)) {
+            throw new \Exception("JournalPreset $tclass does not exist");
+        }
+        $preset = new $tclass($this->log, $this->settings);
+        $this->journalpreset = $preset;
+    }
+
+    function setMetadata($data) {
+        foreach ($this->metadata as $key => $value) {
+            if (isset($data[$key])) {
+                $this->metadata[$key] = $data[$key];
+            }
+        }
+
+        if ($this->journalpreset and method_exists($this->journalpreset, setMetadata)) {
+            $this->metadata = $this->journalpreset->setMetadata($data);
+        }
+
+        if (($this->metadata['issue_tag'] == '###') and isset($this->metadata['volume']) and isset($this->metadata['year'])) {
+            $this->metadata['issue_tag'] = "{$this->metadata['volume']} • {$this->metadata['year']}";
+        }
+        $this->checkMetadata();
+    }
+
+
+    /**
+     * checks if metdata is set, else raises an error
+     */
+    function checkMetadata() {
+        foreach($this->metadata as $key => $value) {
+            if ($value == '###') {
+                $this->log->warning('Metadata ' . $key . ' not set');
+            }
+        }
+    }
 
 }
 

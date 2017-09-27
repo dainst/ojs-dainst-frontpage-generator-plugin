@@ -46,37 +46,7 @@ namespace dfm {
 		}
 
 		
-		final function setDefaultMetadata($data) {			
-			foreach ($this->metadata as $key => $value) {
-				if (isset($data[$key])) {
-					$this->metadata[$key] = $data[$key];
-				}
-			}
-			if (($this->metadata['issue_tag'] == '###') and isset($this->metadata['volume']) and isset($this->metadata['year'])) {
-				$this->metadata['issue_tag'] = "{$this->metadata['volume']} • {$this->metadata['year']}";
-			}
-		}
 
-
-		/**
-		 * checks if metdata is set, else raises an error
-		 */
-		function checkMetadata() {
-			foreach($this->metadata as $key => $value) {
-				if ($value == '###') {
-					$this->log->warning('Metadata ' . $key . ' not set');
-				} 
-			}
-		}
-		
-		/**
-		 * 
-		 * @param unknown $data
-		 */
-		function createMetadata($data) {
-			$this->setDefaultMetadata($data);
-			$this->checkMetadata();
-		}
 		
 		function createFrontPage() {
 			$pdf = $this->createPDFObject();
@@ -106,6 +76,9 @@ namespace dfm {
                 throw new \Exception("Class $classname not found!");
             }
 			$pdf = new $classname($this->log,$this->settings);
+            if (method_exists($this->journalpreset, applyToTheme)) {
+                $this->journalpreset->applyToTheme($pdf, $this->metadata);
+            }
 			$pdf->init($this->metadata);
 			return $pdf;
 

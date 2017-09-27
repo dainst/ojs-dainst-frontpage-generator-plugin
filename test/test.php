@@ -15,8 +15,6 @@ try {
 
     $logger = null;
 
-
-
     $settings = (object) array(
         'tmp_path'		=> $path . '/test',
         'lib_path'		=> $path . '/lib',
@@ -48,7 +46,8 @@ try {
 
     if (in_array('tcpdf_fm_creator', $settings->registry['generators'])) {
         $logger->log('Start Frontpage Update');
-        $tcpdf_fm_creator->createMetadata($meta);
+        $tcpdf_fm_creator->setJournalPreset('chiron');
+        $tcpdf_fm_creator->setMetadata($meta);
 
         $newFrontmatterFile = $tcpdf_fm_creator->createFrontPage();
         $tmpFile = $tcpdf_fm_creator->updateFrontpage("$path/test/test.pdf", $newFrontmatterFile, false);

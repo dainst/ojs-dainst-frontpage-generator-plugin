@@ -474,12 +474,6 @@ class processor extends abstraction {
 		// get generator
         $generator = new \dfm\tcpdf_fm_creator($this->log, $this->settings);         // TODO select correct generator
 
-        // get journals preset
-        // (some journals (may) need special treatment for example chiron has two different publishers, but we want only print the right one one th frontpage)
-        $jclass = (in_array($journalAbb, $this->settings->registry['journalpresets'])) ? '\dfm\\' . $journalAbb : "\dfm\journalpreset";
-        $journalpreset = new $jclass($this->log, $this->settings);
-
-
 		// fill it with data
 		@$meta = array(
 			'article_author'	=> $this->_noDoubleSpaces($article->getAuthorString(false, ' – ')),
@@ -505,8 +499,8 @@ class processor extends abstraction {
 			$meta['issn_printed']= $journalSettings['printIssn'];
 		}
 
-        //$generator->theme = ...
-        $generator->createMetadata($meta);
+        $generator->setJournalPreset($journalAbb);
+        $generator->setMetadata($meta);
         $generator->fileToUpdate = $fileToUpdate;
 		return $generator;
 	}

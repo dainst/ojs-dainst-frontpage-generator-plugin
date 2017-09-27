@@ -1,9 +1,13 @@
 <?php
 namespace dfm;
 class journalpreset extends abstraction {
-    const dependency = 'spasst';
+
     function setMetadata() {
 
+    }
+
+    function __construct($logger, $settings) {
+        parent::__construct($logger, $settings);
     }
 }
 ?>
