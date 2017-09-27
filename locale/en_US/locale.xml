@@ -2,7 +2,7 @@
 <!DOCTYPE locale SYSTEM "../../../../../lib/pkp/dtd/locale.dtd">
  
 <locale name="en_US" full_name="U.S. English">
-	<message key="plugins.generic.dainstFrontmatter.updated">Front Matter Updated</message>
+	<message key="plugins.generic.dainstFrontmatter.systemCheck">System-Check</message>
 	<message key="plugins.generic.dainstFrontmatter.resultsTitle">Update Front Matter</message>
 	<message key="plugins.generic.dainstFrontmatter.title">Update Front Matter</message>
 	<message key="plugins.generic.dainstFrontmatter.idlist">Update Front Matters of ...</message>
@@ -19,14 +19,16 @@
 	<message key="plugins.generic.as.selectObjectType">Choose Object Type</message>
 	<message key="plugins.generic.as.objectType">Object Type</message>
 	<message key="plugins.generic.as.goBack">Go Back..</message>
+	<message key="plugins.generic.as.apierror">Error retrieving OJS Data</message>
 
 	<message key="plugins.generic.dainstFrontmatter.button.update">Update Front Matter(s)</message>
-	<message key="plugins.generic.dainstFrontmatter.updated">Front Matter has been updated.</message>
-	<message key="plugins.generic.dainstFrontmatter.button.replace"><![CDATA[<b>Replace</b> Front Matter]]>]]></message>
-
-	<message key="plugins.generic.dainstFrontmatter.button.test">Statustest</message>
-
+	<message key="plugins.generic.dainstFrontmatter.updated">Front Matter has been updated. FUCK</message>
+	<message key="plugins.generic.dainstFrontmatter.button.replace"><![CDATA[<b>Replace</b> Front Matter]]></message>
+	<message key="plugins.generic.dainstFrontmatter.button.thumpnail">Create Thumpnail</message>
+	<message key="plugins.generic.dainstFrontmatter.selectedTheme">Selected Theme</message>
+	<message key="plugins.generic.dainstFrontmatter.selectedThemeNone">No Valid Theme selected!</message>
 
 
 	<message key="plugins.generic.dainstFrontmatter.settings">Settings</message>
+	<message key="plugins.generic.dainstFrontmatter.selectTheme">Select Theme</message>
 </locale>

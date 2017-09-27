@@ -94,7 +94,7 @@ class loader {
                 $checker = new \dfm\systemChecker($logger, $settings);
                 $logger->log("System Check Required");
                 $checker->check();
-                $logger->log($settings);
+                //$logger->log($settings);
             }
 
             $this->settings = $settings;

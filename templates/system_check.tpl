@@ -1,8 +1,8 @@
 {strip}
-    {assign var=pageTitle value="plugins.generic.dainstFrontmatter.resultsTitle"}
+    {assign var="pageTitle" value="plugins.generic.dainstFrontmatter.systemCheck"}
     {include file="common/header.tpl"}
 {/strip}
-<h4>{translate key="plugins.generic.dainstFrontmatter.systemCheck"}</h4>
+{plugin_menu selected="systemcheck"}
 <div class='dainstPluginLog'>
     {themResults}
 </div>

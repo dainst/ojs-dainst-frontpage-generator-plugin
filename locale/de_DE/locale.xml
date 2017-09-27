@@ -12,7 +12,7 @@
 	<message key="plugins.generic.dainstFrontmatter.button.update">Aktualisiere Titelseite(n)</message>
 	<message key="plugins.generic.dainstFrontmatter.updated">Titelseite wurde aktualisiert.</message>
 	<message key="plugins.generic.dainstFrontmatter.button.replace"><![CDATA[Titelseite(n) <b>austauschen</b>]]></message>
-	<message key="plugins.generic.dainstFrontmatter.button.test">Funktionstüchtigkeit Testen</message>
+	<message key="plugins.generic.dainstFrontmatter.button.thumpnail">Erstelle neues Thumpnail</message>
 
 
 	<message key="plugins.generic.as.idlistText">Fügen Sie in den Kasten unten entweder die ID bzw. eine (kommagetrennte) Liste von IDs ein oder eine URL, die zu einem Artikel oder einer Artikelfahne zeigt, ...</message>
@@ -23,6 +23,8 @@
 	<message key="plugins.generic.as.selectObjectType">Choose Object Type</message>
 	<message key="plugins.generic.as.objectType">Object Type</message>
 	<message key="plugins.generic.as.goBack">Go Back..</message>
+
+	<message key="plugins.generic.dainstFrontmatter.systemCheck">System-Check</message>
 
 
 </locale>

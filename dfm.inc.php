@@ -2,26 +2,7 @@
 /**
  * 
  * plugin that generated front pages for our pfds
- * 
- * it is a little bit complicated structures since here come together the OO-Strcutires from OJS, TCPDF and the importer wor wich
- * this code was previously written
- * 
- * dfm (extends GenericPlugin) = OJS plugin
- *  |
- *  +- creates: processor = class to sum up functions to retrieve the data for frontapge and do the hard file stuff
- *  |            |
- *  |            +- creates: logger
- *  |            +- creates: \dfm\journal (or extending \dfm\journals/{xxx}) = bring the metdata in a form we want on the frointpage and so
- *  |                         |
- *  |                         +- uses: logger
- *  |                         +- creates: daiPDF (extends TCPDF) = a TCPDF implementation as TCPDF works like that
- *  
- * 
- * 
- * 
- * 
- * 
- * 
+
  */
 
 
@@ -83,7 +64,7 @@ class dfm extends GenericPlugin {
 		$verbs = array();
 		if ($this->getEnabled()) {
 			$verbs[] = array('generate', 'Generate Front Matters');
-            $verbs[] = array('api', 'api');
+            $verbs[] = array('settings', 'Settings');
             $verbs[] = array('systemcheck', 'System Check');
 		}
 		return parent::getManagementVerbs($verbs);
@@ -113,7 +94,8 @@ class dfm extends GenericPlugin {
         $templateMgr->register_function('plugin_url', array(&$this, 'smartyPluginUrl'));
         $templateMgr->register_modifier('get_title', array(&$this, 'getModuleTitle'));
         $templateMgr->register_modifier('get_availability', array(&$this, 'getModuleAvailability'));
-       
+        $templateMgr->register_function('plugin_menu', array(&$this, 'pluginMenu'));
+
         $templateMgr->assign('additionalHeadData', $templateMgr->get_template_vars('additionalHeadData') . "<link rel='stylesheet' href='$theUrl/dfm.css' type='text/css' />");
         $templateMgr->assign('thePath', $ojsPath . $this->pluginPath); // we need this?
 
@@ -160,6 +142,7 @@ class dfm extends GenericPlugin {
                             $this->updateSetting(CONTEXT_ID_NONE, 'dfm_theme', $theme);
                         }
                     }
+
 
 					$templateMgr->assign('settings', (array) $this->settings);
 					$form->display();
@@ -242,6 +225,19 @@ class dfm extends GenericPlugin {
 	}
 	
 	/* helping hands */
+
+	function pluginMenu($args) {
+        $selected = isset($args['selected']) ? $args['selected'] : '';
+		echo "<div class='btn-group'>";
+		foreach ($this->getManagementVerbs() as $tupel) {
+			if($tupel[0] == 'disable') {
+				continue;
+			}
+            $class = ($selected != $tupel[0]) ? 'btn-default' : 'btn-primary';
+			echo "<a class='btn $class' href='{$tupel[0]}'>{$tupel[1]}</a>";
+		}
+		echo "</div>";
+	}
 
 	
 	function returnLog() {

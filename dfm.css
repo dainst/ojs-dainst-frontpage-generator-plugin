@@ -2,9 +2,7 @@
 
 
 .dainstPluginLog {
-	border: 1px solid silver; 
-	border-radius: 3px; 
-	padding: 0.6em
+	margin-top: 10px
 }
 
 input[type=checkbox] ~ .dainstPluginLog .alert-info {

@@ -3,6 +3,8 @@
     {include file="common/header.tpl"}
 {/strip}
 
+{plugin_menu selected="settings"}
+
 <div id="dfmSettings">
     <form method="post" action="{plugin_url path="settings"}">
         {include file="common/formErrors.tpl"}
@@ -26,8 +28,6 @@
         <br>
         <input type="submit" name="save" class="button defaultButton" value="{translate key="common.save"}"/>
         <input type="button" class="button" value="{translate key="common.cancel"}" onclick="history.go(-1)"/>
-
-
 
     </form>
 </div>
