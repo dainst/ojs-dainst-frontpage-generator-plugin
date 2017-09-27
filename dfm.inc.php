@@ -113,7 +113,8 @@ class dfm extends GenericPlugin {
         $templateMgr->register_function('plugin_url', array(&$this, 'smartyPluginUrl'));
         $templateMgr->register_modifier('get_title', array(&$this, 'getModuleTitle'));
         $templateMgr->register_modifier('get_availability', array(&$this, 'getModuleAvailability'));
-        $templateMgr->assign('additionalHeadData', "<link rel='stylesheet' href='$theUrl/dfm.css' type='text/css' />");
+       
+        $templateMgr->assign('additionalHeadData', $templateMgr->get_template_vars('additionalHeadData') . "<link rel='stylesheet' href='$theUrl/dfm.css' type='text/css' />");
         $templateMgr->assign('thePath', $ojsPath . $this->pluginPath); // we need this?
 
 		$dfm_dr = ($verb != 'systemcheck') ? $this->getSetting(CONTEXT_ID_NONE, 'dfm_dr') : '';
@@ -123,7 +124,7 @@ class dfm extends GenericPlugin {
             'tmp_path'				=> Config::getVar('dainst', 'tmpPath'),
             'lib_path'				=> $this->pluginPath . '/lib',
             'dfm_path'				=> $this->pluginPath,
-            'files_path'			=> $this->pluginPath . '/classes/pdfWorker/files',
+            'files_path'			=> $this->pluginPath . '/classes/pdfWorker/files', //TODO remove?!
 			'ojs_path'				=> $ojsPath,
 			'url'					=> $theUrl,
 			'dependencies_resolved' => is_null($dfm_dr) ? array() : $dfm_dr,
@@ -168,16 +169,12 @@ class dfm extends GenericPlugin {
 					if (!$pickerloader->load()) {
 						throw new Exception("Article Picker not Found");
 					}
-
 					$this->import('classes.form.selectToRefreshForm');
 					$form = new selectToRefreshForm($this, $journalId);
-
 					if (Request::getUserVar('save')) {
 						$form->readInputData();
 						if ($form->validate()) {
-							ob_start();
-							$form->execute();
-							//$this->log = ob_get_clean(); return it correctly
+                           	$this->startUpdateFrontpages($form->getData('idlist'), $form->getData('type'), $form->getData('replace'));
 							$templateMgr->display(dirname(__FILE__) . '/templates/log.tpl');
 							break;
 						}
@@ -213,17 +210,17 @@ class dfm extends GenericPlugin {
 	
 	/* the function itself */ 
 	function startUpdateFrontpages($ids, $type, $updateFrontpages = true, $is_cli = false) {
-		$processor = new processor($this);
+		$processor = new \dfm\processor($this->logger, $this->settings);
 		$ids = (!is_array($ids)) ? explode(',', $ids) : $ids;
 		$success = $processor->runFrontpageUpate($ids, $type, $updateFrontpages);
 
 		if ($is_cli) {
 			echo ($success === true) ? "\nSUCCESS \n" : "\nERROR: $success \n";
 		} else {
-			echo ($success === true) ? '' : "<div class='alert alert-danger'>ERROR: $success</div>";
+			//echo ($success === true) ? '' : "<div class='alert alert-danger'>ERROR: $success</div>";
 		}
 
-		echo $processor->log->dumpLog(true, $is_cli);
+		//echo $processor->log->dumpLog(true, $is_cli);
 
 		if ($processor->continue) {
 			if ($is_cli) {

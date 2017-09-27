@@ -8,39 +8,33 @@
  *
  */
 
-namespace dfm;
-
+namespace tcpdf;
 
 class dai_tcpdf_theme extends \TCPDF {
 
     const dependencies = 'tcpdf';
 
 	public $metadata = array();
+
+	public $lang;
 	
-	public $logger;
+	public $log;
 
 	public $settings; // paths!
 	
-	public $smallMode;
 
-    public function __construct($smallmode = false) {
-
+    public function __construct($log, $settings) {
+        $this->log = $log;
+        $this->settings = $settings;
         $this->unitScale = 1;
         $format = 'A4';
-        if ($smallmode == true) {
-            $this->unitScale = 0.5;
-            $format = 'A5';
-            $this->smallMode = $smallmode;
-        }
-
-
         parent::__construct('P', 'mm', $format, true, 'UTF-8', false, false);
+        $this->lang = json_decode(file_get_contents($this->settings->theme_path . '/common.json'));
     }
 	
-	public function daiInit($lang, $metadata) {
+	public function init($metadata) {
 		$this->importMissingFonts();
-		
-		$this->lang = $lang;
+
 		$this->metadata = $metadata;
 		
 		// set monosprace font
@@ -65,16 +59,16 @@ class dai_tcpdf_theme extends \TCPDF {
 		$this->AddPage();
 	}
 	
-	public function daiFrontpage() {
+	public function frontpage() {
 	
 		// get unitScale
 		$k = $this->unitScale;
 
-		$svg = '@' . file_get_contents("{$this->settings->files_path}/dailogo.svg");
+		$svg = '@' . file_get_contents("{$this->settings->theme_path}/dailogo.svg");
 
 		$this->ImageSVG(
 		    $svg /*$file*/,
-			$this->smallMode ? 96.2 : 114 /*$x*/, 
+			114 /*$x*/,
 			15 * $k /*$y*/, 
 			'' /*$w*/, 
 			23 * $k /*$h*/, 
@@ -89,8 +83,8 @@ class dai_tcpdf_theme extends \TCPDF {
 	
 		// first grey line
 		$this->SetLineStyle(array('width' => 0.1 / $this->k, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(128, 130, 133)));
-		$this->SetXY($this->smallMode ? 97 : 115.5, $this->GetY() + 2.7 * $k, true);
-		$this->Cell($this->smallMode ? 41 : 75, 0, '', 'T', 0, 'L');
+		$this->SetXY(115.5, $this->GetY() + 2.7 * $k, true);
+		$this->Cell(75, 0, '', 'T', 0, 'L');
 	
 		// iDAI.publications below
 		//$this->SetXY(107, $this->GetY() + 2.7);
@@ -101,8 +95,8 @@ class dai_tcpdf_theme extends \TCPDF {
 	
 		// second grey line
 		$this->SetLineStyle(array('width' => 0.1 / $this->k, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(128, 130, 133)));
-		$this->SetXY($this->smallMode ? 97 : 115.5, $this->GetY() - 1 * $k);
-		$this->Cell($this->smallMode ? 41 : 75, 0, '', 'T', 0, 'C');
+		$this->SetXY(115.5, $this->GetY() - 1 * $k);
+		$this->Cell(75, 0, '', 'T', 0, 'C');
 	
 		// underline text
 		$this->daiPrint($this->lang->electronic_publication->de, "h2", array(
@@ -123,7 +117,7 @@ class dai_tcpdf_theme extends \TCPDF {
 		$longtitle = strlen($this->metadata['article_title']) > 95;
 		
 		// aus
-		$this->SetXY(20 * $k, $this->GetY() + (($this->smallMode or $longtitle) ? 10 : 26));
+		$this->SetXY(20 * $k, $this->GetY() + ($longtitle ? 10 : 26));
 		$this->daiPrintInfo('from', 1.5);
 	
 		// journal
@@ -138,7 +132,7 @@ class dai_tcpdf_theme extends \TCPDF {
 		$this->daiPrint('<a style="color:black;text-decoration:none" href="' . $this->metadata['url'] . '">' . $this->metadata['url'] . '</a><a style="color:black;text-decoration:none" href="http://nbn-resolving.de/' . $this->metadata['urn'] . '"> • ' . $this->metadata['urn'] . '</a>', 1.5);
 
 		// aus
-		$this->SetXY(20 * $k, $this->GetY() + (($this->smallMode or $longtitle) ? 11 : 28));
+		$this->SetXY(20 * $k, $this->GetY() + ($longtitle ? 11 : 28));
 		$this->daiPrintInfo('editor');
 		$this->daiPrintInfo('journal_url');
 		$this->daiPrintInfo('issn_online');
@@ -172,20 +166,19 @@ class dai_tcpdf_theme extends \TCPDF {
 		);
 	
 		$success = true;
-		
+
+		$tcpdf_path = $this->settings->ojs_path . '/' . $this->settings->lib_path . '/tcpdf';
 		foreach ($fonts as $font) {
-			if (!file_exists("{$this->settings['tcpdf_path']}/fonts/$font.php")) {
-				if (!is_writable("{$this->settings['tcpdf_path']}/fonts")) {
+			if (!file_exists("$tcpdf_path/fonts/$font.php")) {
+				if (!is_writable("$tcpdf_path/fonts")) {
 					throw new \Exception("TCPDF fonts directory not writable");
 				}
-				if (TCPDF_FONTS::addTTFfont("{$this->settings->files_path}/$font.ttf", 'TrueTypeUnicode', 32) === false) {
-					$this->logger->warning("font $font not installed");
+				if (\TCPDF_FONTS::addTTFfont("{$this->settings->theme_path}/$font.ttf", 'TrueTypeUnicode', 32) === false) {
+					$this->log->warning("font $font not successfully installed");
 					$success = false;
 				} else {
-					$this->logger->debug("font $font successfull installed");
+					$this->log->debug("font $font successfully installed");
 				}
-			} else {
-				//$this->logger->debug("font $font allready installed");
 			}
 		}
 	

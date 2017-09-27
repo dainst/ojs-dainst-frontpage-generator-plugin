@@ -32,6 +32,14 @@ class generator extends abstraction {
 
     function __construct($logger, $settings) {
         parent::__construct($logger, $settings);
+        $this->setTheme();
+    }
+
+    function setTheme() {
+        $tclass = '\dfm\\' . $this->settings->theme;
+        $this->log->log("selected theme: $tclass");
+        $theme = new $tclass($this->log, $this->settings);
+        $this->theme = $theme;
     }
 
 

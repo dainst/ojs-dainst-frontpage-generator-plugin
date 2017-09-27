@@ -19,24 +19,51 @@
     font-size: medium;
 }
 .as-select-back {
-    text-align: right;
-    font-style: italic;
-    font-size: small
+    padding: 5px;
+    font-size: medium;
 }
 .as-select-item {
     padding: 5px;
-    font-size: medium
+    font-size: medium;
+    cursor: pointer
+}
+
+.as-select-item:hover {
+    background: silver;
+}
+
+.as-btn {
+    font-size: small;
+    font-style: italic;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.as-btn:hover {
+    text-decoration: none;
+}
+
+#as-filter-button {
+    font-size: small;
+    padding: 0px 5px 5px 5px;
 }
 
 #as-filter {
+    display:none;
     width: 100%;
-    height: 30px;
-    box-sizing: border-box;
 }
 
 #as-select {
     width: 100%;
+    list-style-position: inside;
+    list-style-type: none;
+    padding-left: 0px;
+    margin-bottom: 0px;
+    max-height: 300px;
+    overflow-y: scroll;
+    background: rgb(230,230,230);
 }
+
+
 .as-headline {
     width: 100%;
     font-weight: bold;
@@ -45,6 +72,11 @@
     background: #286090;
     padding: 5px 0px
 }
+
+#as-idlist li {
+    font-size: medium;
+}
+
 #as-idlist li a {
     font-style: italic;
     font-size: small

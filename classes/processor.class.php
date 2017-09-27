@@ -1,8 +1,11 @@
 <?php
 namespace dfm;
-class processor {
+class processor extends abstraction {
 
     const dependencies = 'ojs2';
+
+    const supportedTypes = array('galley', 'article', 'journal', 'issue', 'missing');
+    const maxUpdatesAtOnce = 25;
 		
 	public $galleysToUpdate = []; 
 	/* contains arrays in the form of: 
@@ -14,29 +17,13 @@ class processor {
 			'dirty': <boolean> (when galley is created but file is missing)
 		}
 	*/
-	public $log; // logger object
-	
-	public $plugin; // the dfm plugin
-	
-	public $tmp_path;
-	
+
 	public $updateFrontpages = true; // if true first page will be exchanged, otherwise a front matter will be added
 
 	public $continue = false;  // data if not everything could processed at once
 
-	const supportedTypes = array('galley', 'article', 'journal', 'issue', 'missing');
-	const maxUpdatesAtOnce = 25;
 
-	function __construct($plugin) {
-		$this->plugin = $plugin;
-		$this->log = new \sometools\logger();
 
-		
-		/*
-		error_reporting(E_ALL & ~ E_DEPRECATED);
-		ini_set('display_errors', 'on');//*/
-	}
-	
 
 	
 	/**
@@ -48,7 +35,7 @@ class processor {
 	 * 
 	 * 
 	 * 
-	 * @param <integer> $id - id of an object whose galleys should be updated
+	 * @param <integer> $id - list of ids of objects whose galleys should be updated
 	 * @param <type> $type - type of that object: journal, article or galley (or missing)
 	 * @return <bool|string> - true if success, as text message if error
 	 */
@@ -56,21 +43,19 @@ class processor {
 
 		try {
 
+            $this->log->log('Start Process');
+
 			// type given
-			if (!in_array($type, frontpageCreator::supportedTypes)) {
-				throw new \Exception($type ? "$ID type >>$type<< is not supported!" : "No ID type given!");
+			if (!in_array($type, \dfm\processor::supportedTypes)) {
+				throw new \Exception($type ? "ID type >>$type<< is not supported!" : "No ID type given!");
 			}
 			
 			// update or replace fm
 			$this->updateFrontpages = $updateFrontpages;
-			$this->log->log($updateFrontpages ? 'replace front matter mode' : 'add front matter mode');
+			$this->log->log($updateFrontpages ? 'REPLACE front matter mode' : 'ADD front matter mode');
 			
 			// get and clean tmpFolder
-			$this->tmp_path = Config::getVar('dainst', 'tmpPath'); // TODO replace by $settings setting
-			$this->log->debug("tmp path: ". $this->tmp_path);
-			if (!is_dir($this->tmp_path)) {
-				throw new \Exception("No proper tmp path defined: " . $this->tmpPath);
-			}
+			$this->log->debug("tmp path: ". $this->settings->tmp_path);
 			$this->cleanTmpFolder();
 
 			// idlist
@@ -96,15 +81,17 @@ class processor {
 
 			$this->processList($type == "missing", $type != "missing");
 
-	
-		} catch (Exception $e) {
-			return $e->getMessage();
+            $success = true;
+
+		} catch (\Exception $e) {
+			$this->log->danger($e->getMessage());
+			$success = false;
 		}
 		
 		$this->removeUnfinishedGalleys();
 
 
-		return true;
+		return $success;
 	}
 	
 
@@ -126,12 +113,12 @@ class processor {
 
 			// make sure, we have a proper galley here
 			if (!$galley or (get_class($galley) != "ArticleGalley")) {
-				$this->log->warning("galley skipped, no galley: " . print_r($galley,1));
+				$this->log->warning("galley skipped, no galley: " . $galley->getId());
 				continue;
 			}
 			
 			if (!$galley->isPdfGalley()) {
-				$this->log->warning("galley skipped, no pdf galley");
+				$this->log->warning("galley skipped, no pdf galley: " . $galley->getId());
 				continue;
 			}
 			/*
@@ -178,7 +165,7 @@ class processor {
 	 * @param <integer> $id
 	 */
 	function getGalley($id) {
-		$galleyDao = DAORegistry::getDAO('ArticleGalleyDAO');
+		$galleyDao = \DAORegistry::getDAO('ArticleGalleyDAO');
 		$galley = $galleyDao->getGalley($id);
 		if (method_exists($galley, 'getArticleId')) {
 			$this->registerGalleys($galley, $galley->getArticleId());
@@ -194,13 +181,13 @@ class processor {
 	 * @param <Journal*> $journal
 	 */
 	function getArticleGalleys($id, $journal = null) {
-		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
+		$galleyDao =& \DAORegistry::getDAO('ArticleGalleyDAO');
 		$this->registerGalleys($galleyDao->getGalleysByArticle($id), $id, $journal);
 	}
 	
 	function getIssueGalleys($id) {
 		$this->log->log('get galleys of issue ' + $id);
-		$PublishedArticleDAO =& DAORegistry::getDAO('PublishedArticleDAO');
+		$PublishedArticleDAO =& \DAORegistry::getDAO('PublishedArticleDAO');
 		$publishedArticles = $PublishedArticleDAO->getPublishedArticles($id);
 		$journal = false;
 		foreach ($publishedArticles as $publishedArticle) {
@@ -216,7 +203,7 @@ class processor {
 	 * @param <integer> $id - journal id
 	 */
 	function getJournalGalleys($id) {
-		$articleDao =& DAORegistry::getDAO('ArticleDAO');
+		$articleDao =& \DAORegistry::getDAO('ArticleDAO');
 		$result = $articleDao->getArticlesByJournalId($id);
 		$journal = $this->getJournal($id);
 		foreach ($result->records as $record) {
@@ -231,7 +218,7 @@ class processor {
 	 * @return unknown
 	 */
 	function getJournal($id) {
-		$journalDao =& DAORegistry::getDAO('JournalDAO');
+		$journalDao =& \DAORegistry::getDAO('JournalDAO');
 		$journal =& $journalDao->getJournal($id);
 		return $journal;
 	}
@@ -243,7 +230,7 @@ class processor {
 	 * @return Article
 	 */
 	function getArticle($id) {
-		$articleDao =& DAORegistry::getDAO('ArticleDAO');
+		$articleDao =& \DAORegistry::getDAO('ArticleDAO');
 		return $articleDao->getArticle($id);
 	}
 	
@@ -255,10 +242,10 @@ class processor {
 	 * 
 	 */
 	function getMissing() {
-		$articleDao =& DAORegistry::getDAO('ArticleDAO');
+		$articleDao =& \DAORegistry::getDAO('ArticleDAO');
 		$sql = "SELECT * FROM articles WHERE pages like '%#DFM'";
 		$blub = $articleDao->retrieve($sql);
-		$result = new DAOResultFactory($blub, $this, '_dummy');
+		$result = new \DAOResultFactory($blub, $this, '_dummy');
 		$result = $result->toArray();
 		foreach ($result as $record) {
 			$this->getArticleGalleys($record['article_id']);
@@ -279,15 +266,15 @@ class processor {
 	 * @param <bool> $removeMarker - if true, only a maximum of item will be processed
 	 * both makes only sense to change in context of cli driven "replace missing", but that may change in further developpment
 	 *
-	 * @throws Exception
+	 * @throws \Exception
 	 */
 	function processList($removeMarker = false, $applyMaximumOprations =  true) {
 		if (!$this->galleysToUpdate or !count($this->galleysToUpdate)) {
-			throw new Exception("no galleys given");
+			throw new \Exception("no galleys given");
 		}
 
-		if ($applyMaximumOprations and (count($this->galleysToUpdate) > frontpageCreator::maxUpdatesAtOnce)) {
-			$this->log->warning("To many galleys to update front matters at once: " . count($this->galleysToUpdate) . ". (Maximums is " . frontpageCreator::maxUpdatesAtOnce .")");
+		if ($applyMaximumOprations and (count($this->galleysToUpdate) > \dfm\processor::maxUpdatesAtOnce)) {
+			$this->log->warning("To many galleys to update front matters at once: " . count($this->galleysToUpdate) . ". (Maximums is " . \dfm\processor::maxUpdatesAtOnce .")");
 			$this->shiftList($removeMarker);
 		}
 
@@ -303,7 +290,7 @@ class processor {
 	 * @param $removeMarker
 	 */
 	function shiftList() {
-		$rest = array_splice($this->galleysToUpdate, frontpageCreator::maxUpdatesAtOnce);
+		$rest = array_splice($this->galleysToUpdate, \dfm\processor::maxUpdatesAtOnce);
 		$ids = array_map(function($item) {
 			return $item->galley->getId();
 		}, $rest);
@@ -325,19 +312,19 @@ class processor {
 
 		try {
 
-			// get journalController
-			$pdfWorker = $this->getPDFWorker($galleyItem);
+			// get generator
+            $tcpdf_fm_creator = $this->getGenerator($galleyItem);
 
 			// create new front matter
-			$newFrontmatterFile = $pdfWorker->createFrontPage();
+			$newFrontmatterFile = $tcpdf_fm_creator->createFrontPage();
 
 			// attach frontpage to file
-			$tmpFile = $pdfWorker->updateFrontpage($pdfWorker->fileToUpdate, $newFrontmatterFile, $this->updateFrontpages);
+			$tmpFile = $tcpdf_fm_creator->updateFrontpage($tcpdf_fm_creator->fileToUpdate, $newFrontmatterFile, $this->updateFrontpages);
 
 			// update pdf metadata
-			$tmpFile = $pdfWorker->updatePDFMetadata($tmpFile);
+			$tmpFile = $tcpdf_fm_creator->updatePDFMetadata($tmpFile);
 
-			// now that everythings seems to have worked (otherwise we would not be here but in an exception handler hopefully),
+			// now that everythings seems to have worked (otherwise we would not be here but in an \Exception handler hopefully),
 			// we can copy back the shiny and overwrite the old one...
 			$this->replaceFile($galleyItem, $tmpFile);
 
@@ -367,25 +354,25 @@ class processor {
 		$oldGalley = $galleyItem->galley;
 		$newGalley = $galleyItem->newGalley;
 		import('classes.file.ArticleFileManager');
-		$articleFileManager = new ArticleFileManager($article->getId());
+		$articleFileManager = new \ArticleFileManager($article->getId());
 		$fileId = $articleFileManager->copyPublicFile($newFile, 'application/pdf');
 		if ($fileId == 0) {
-			throw new Exception("article " . $article->getId() . ": new file could not be copied!");
+			throw new \Exception("article " . $article->getId() . ": new file could not be copied!");
 		}
 		$newGalley->setFileId($fileId);	
 		$newGalley->setSequence(0);
 		$newGalley->setFileType('application/pdf'); // important!
-		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
+		$galleyDao =& \DAORegistry::getDAO('ArticleGalleyDAO');
 		$galleyDao->updateGalley($newGalley);
 
 		$galleyItem->dirty = false;
 		$articleFileManager->deleteFile($oldGalley->getFileId());
 		$galleyDao->deleteGalley($oldGalley);
 		
-		$user = Request::getUser();
+		$user = \Request::getUser();
 		import('classes.article.log.ArticleLog');
 
-		ArticleLog::logEventHeadless(
+		\ArticleLog::logEventHeadless(
 			$journal, 
 			!is_null($user) ? $user->getId() : '', // if cli, user is not given
 			$article,
@@ -400,7 +387,7 @@ class processor {
 
 	function removeMarker($galleyItem) {
 		$article = $galleyItem->article;
-		$articleDao =& DAORegistry::getDAO('ArticleDAO');
+		$articleDao =& \DAORegistry::getDAO('ArticleDAO');
 		
 		$pages = $article->getPages();
 		
@@ -427,7 +414,7 @@ class processor {
 	 * @return multitype:NULL
 	 */	
 	function createPubIds($galley, $article, $preview = false) {		
-		$pubIdPlugins =& PluginRegistry::loadCategory('pubIds', true, $article->getJournalId());
+		$pubIdPlugins =& \PluginRegistry::loadCategory('pubIds', true, $article->getJournalId());
 		$pubIds = array();
 		foreach ($pubIdPlugins as $pubIdPlugin) {
 			$pubIdType = $pubIdPlugin->getPubIdType();
@@ -451,27 +438,27 @@ class processor {
 	 * @param <object> $galleyItem
 	 * @return $journal instance 
 	 */
-	function getPDFWorker($galleyItem) {
+	function getGenerator($galleyItem) {
 
-		// do the OJS object madness (wich most likely emerged from a poor java-bloated mind)
+		// do the OJS object madness
 		$article = $galleyItem->article;
 		$articleId = $article->getId();
 		$galley = $galleyItem->galley;
 		$journal = $galleyItem->journal;
 		$journalAbb = $journal->getPath();
-		$journalSettingsDao =& DAORegistry::getDAO('JournalSettingsDAO');
+		$journalSettingsDao =& \DAORegistry::getDAO('JournalSettingsDAO');
 		$journalSettings = $journalSettingsDao->getJournalSettings($journal->getId());
-		$issueDao =& DAORegistry::getDAO('IssueDAO');
+		$issueDao =& \DAORegistry::getDAO('IssueDAO');
 		$issue =& $issueDao->getIssueByArticleId($articleId, $journal->getId(), true);
 		import('classes.file.ArticleFileManager');
-		$articleFileManager = new ArticleFileManager($articleId);
+		$articleFileManager = new \ArticleFileManager($articleId);
 		$articleFile = $articleFileManager->getFile($galley->_data['fileId']);
 		if (!is_object($articleFile)) { // under some currently unknown circumstances $articleFile is empty
-			throw new Exception("File #$articleFile of galley #" . $galley->getId() . " of article #$articleId has a problem / is not found");
+			throw new \Exception("File #$articleFile of galley #" . $galley->getId() . " of article #$articleId has a problem / is not found");
 		}
 		$fileToUpdate = $articleFileManager->filesDir .  $articleFileManager->fileStageToPath($articleFile->getFileStage()) . '/' . $articleFile->getFileName();
-		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
-		$newGalley = new ArticleGalley();
+		$galleyDao =& \DAORegistry::getDAO('ArticleGalleyDAO');
+		$newGalley = new \ArticleGalley();
 		$newGalley->setLabel('PDF');
 		$newGalley->setSequence(0);
 		$newGalley->setFileType('application/pdf'); // important!
@@ -484,24 +471,14 @@ class processor {
 		$this->log->log("created the following PIDs: " . print_r($pids,1));
 		$galleyItem->newGalley = $newGalley;
 		
-		// get journal Controller
-		// some journals (may) need special treatment for example chiron has two different publishers, but we want only print the right one one th frontpage
-		require_once("pdfWorker/tcpdf_fm_creator.class.php");
-		if (stream_resolve_include_path("pdfWorker/journalSpecific/{$journalAbb}.class.php")) {
-			require_once("pdfWorker/journalSpecific/{$journalAbb}.class.php");
-			$class = "\\dfm\\pdfWorkers\\{$journalAbb}";
-		} else {
-			$class = "\\dfm\\pdfWorker";
-		}
-		$pdfWorker = new $class(
-			$this->log,
-			array(
-				'tmp_path'		=> $this->tmp_path,
-				'tcpdf_path'	=> $this->plugin->pluginPath . '/tcpdf',
-				'files_path'	=> $this->plugin->pluginPath . '/classes/pdfWorker/files' // artwork files and stuff
-			)
-		);		
-		$this->log->log('using controller ' . $class);
+		// get generator
+        $generator = new \dfm\tcpdf_fm_creator($this->log, $this->settings);         // TODO select correct generator
+
+        // get journals preset
+        // (some journals (may) need special treatment for example chiron has two different publishers, but we want only print the right one one th frontpage)
+        $jclass = (in_array($journalAbb, $this->settings->registry['journalpresets'])) ? '\dfm\\' . $journalAbb : "\dfm\journalpreset";
+        $journalpreset = new $jclass($this->log, $this->settings);
+
 
 		// fill it with data
 		@$meta = array(
@@ -509,26 +486,29 @@ class processor {
 			'article_title'		=> $article->getTitle($galley->getLocale()) ? $article->getTitle($galley->getLocale()) : $article->getLocalizedTitle(),
 			'editor'			=> '<br>' . $this->_noLineBreaks($journalSettings['contactName'] . ' ' . $this->_getLocalized($journalSettings['contactAffiliation'])),
 			'journal_title'		=> $this->_getLocalized($journalSettings['title']), 
-			'journal_url'		=> Config::getVar('general', 'base_url') . '/' . $journalAbb,
+			'journal_url'		=> \Config::getVar('general', 'base_url') . '/' . $journalAbb,
 			'pages'				=> str_replace('#DFM', '', $article->_data['pages']),
 			'pub_id'			=> $articleId,
 			'publisher'			=> $this->_noLineBreaks($journalSettings['publisherInstitution']  . ' ' . $this->_getLocalized($journalSettings['publisherNote'])),
-			'url'				=> Config::getVar('general', 'base_url') . '/' . $journalAbb . '/' . $articleId . '/' . $newGalley->getId(),
+			'url'				=> \Config::getVar('general', 'base_url') . '/' . $journalAbb . '/' . $articleId . '/' . $newGalley->getId(),
 			'urn'				=> isset($pids['other::urnDNB']) ? $pids['other::urnDNB'] : (isset($pids['other::urn']) ? $pids['other::urn'] : ''), // take the URN created by the ojsde-dnburn pugin, if not present try the normla pkugins urn or set ###
 			'volume'			=> $issue->_data['volume'],
 			'year'				=> $issue->_data['year'],
 			'zenon_id'			=> isset($pids['other::zenon']) ? $pids['other::zenon'] : '##'
 		);
 
+
+
 		if (isset($journalSettings['onlineIssn']) and $journalSettings['onlineIssn']) {
 			$meta['issn_online']= $journalSettings['onlineIssn'];
 		} elseif (isset($journalSettings['printIssn']) and $journalSettings['printIssn']) {
 			$meta['issn_printed']= $journalSettings['printIssn'];
 		}
-		
-		$pdfWorker->createMetadata($meta);
-		$pdfWorker->fileToUpdate = $fileToUpdate;
-		return $pdfWorker;
+
+        //$generator->theme = ...
+        $generator->createMetadata($meta);
+        $generator->fileToUpdate = $fileToUpdate;
+		return $generator;
 	}
 
 	/**
@@ -540,7 +520,7 @@ class processor {
 		if (!$this->galleysToUpdate or !count($this->galleysToUpdate)) {
 			return;
 		}
-		$galleyDao =& DAORegistry::getDAO('ArticleGalleyDAO');
+		$galleyDao =& \DAORegistry::getDAO('ArticleGalleyDAO');
 		foreach ($this->galleysToUpdate as $galleyItem) {
 			if ($galleyItem->dirty === true) {
 				$id = $galleyItem->newGalley->getId();
@@ -555,7 +535,7 @@ class processor {
 	 * deleted whatever garbish was created on the way to the new frontmatter
 	 */
 	public function cleanTmpFolder() {
-		array_map('unlink', glob($this->tmp_path . '/*'));
+		array_map('unlink', glob($this->settings->tmp_path . '/*'));
 	}
 	
 	/**
@@ -576,7 +556,7 @@ class processor {
 		if (!is_array($array)) {
 			return $array;
 		}
-		$default = AppLocale::getPrimaryLocale();
+		$default = \AppLocale::getPrimaryLocale();
 		return isset($array[$default]) ? $array[$default] : array_pop($array);
 	}
 	

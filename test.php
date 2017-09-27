@@ -8,7 +8,7 @@ $logger = null;
 
 $path = dirname(__FILE__);
 
-$settings = array(
+$settings = (object) array(
     'tmp_path'		=> '/somefolder',
     'lib_path'		=> $path . '/lib',
     'dfm_path'		=> $path,
@@ -18,9 +18,6 @@ $settings = array(
 if (!$loader->load($logger, $settings)) {
     echo 'error loading dfm'; die();
 }
-
-$checker = new \dfm\systemChecker($logger, $settings);
-$checker->check();
 
 $logger->dumpLog(false, true);
 ?>

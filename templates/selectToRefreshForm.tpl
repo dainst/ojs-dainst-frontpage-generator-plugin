@@ -14,7 +14,7 @@
         <input type="checkbox" name="replace" checked="checked" id="checkReplace">
         <label for="checkReplace">{translate key="plugins.generic.dainstFrontmatter.button.replace"}</label>
         <br>
-        <input type="checkbox" name="replace" disabled id="checkThumpnail">
+        <input type="checkbox" name="thumpnails" disabled id="checkThumpnail">
         <label for="checkReplace">{translate key="plugins.generic.dainstFrontmatter.button.thumpnail"}</label>
         <hr>
 

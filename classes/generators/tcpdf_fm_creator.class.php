@@ -43,13 +43,10 @@ namespace dfm {
 	    const title = 'TCPDF Frontpage Creator';
 
 		function __construct($logger, $settings) {
-			//$this->lang = json_decode(file_get_contents($this->settings->files_path . '/common.json')); @ TODO put somwhere else
             parent::__construct($logger, $settings);
+            require_once($this->settings->lib_path . '/tcpdf/tcpdf.php');
 		}
 
-        public $smallMode = false; // false: A4 Formatj, true: A5 Format
-
-        public $lang = array();
 		
 		final function setDefaultMetadata($data) {			
 			foreach ($this->metadata as $key => $value) {
@@ -58,7 +55,7 @@ namespace dfm {
 				}
 			}
 			if (($this->metadata['issue_tag'] == '###') and isset($this->metadata['volume']) and isset($this->metadata['year'])) {
-				$this->metadata['issue_tag']		= "{$this->metadata['volume']} • {$this->metadata['year']}";
+				$this->metadata['issue_tag'] = "{$this->metadata['volume']} • {$this->metadata['year']}";
 			}
 		}
 		
@@ -76,7 +73,7 @@ namespace dfm {
 		function checkMetadata() {
 			foreach($this->metadata as $key => $value) {
 				if ($value == '###') {
-					$this->logger->warning('Metadata ' . $key . ' not set');
+					$this->log->warning('Metadata ' . $key . ' not set');
 				} 
 			}
 		}
@@ -93,7 +90,7 @@ namespace dfm {
 		
 		function createFrontPage() {
 			$pdf = $this->createPDFObject();
-			$pdf->daiFrontpage(); // default frontpage layout
+			$pdf->frontpage(); // default frontpage layout
 			$path = $this->getTmpFileName();
 			$pdf->Output($path, 'F');
 			return $path;
@@ -111,15 +108,19 @@ namespace dfm {
 			if (!defined('K_TCPDF_THROW_EXCEPTION_ERROR')) {
 				define('K_TCPDF_THROW_EXCEPTION_ERROR', true);
 			}
-			
-			require_once('theme.php');
-			//function __construct($orientation='P', $unit='mm', $format='A4', $unicode=true, $encoding='UTF-8', $diskcache=false, $pdfa=false
-			//array(160, 240)
-			$pdf = new \daiPDF($this->smallMode);
-			$pdf->logger = $this->logger;
-			$pdf->settings = $this->settings;
-			$pdf->daiInit($this->lang, $this->metadata);
+
+            $this->settings->theme_path = $this->settings->ojs_path . '/' . $this->settings->dfm_path . '/classes/themes/' . $this->settings->theme;
+			require_once($this->settings->theme_path . '/theme.php');
+            $classname = '\tcpdf\\' . $this->settings->theme;
+            if (!class_exists($classname)) {
+                throw new \Exception("Class $classname not found!");
+            }
+			$pdf = new $classname($this->log,$this->settings);
+			$pdf->init($this->metadata);
 			return $pdf;
+
+            //function __construct($orientation='P', $unit='mm', $format='A4', $unicode=true, $encoding='UTF-8', $diskcache=false, $pdfa=false
+            //array(160, 240)
 		}
 		
 		/**
@@ -134,7 +135,7 @@ namespace dfm {
 		 * @return <string> fullpath of file with new frontmatter
 		 */
 		public function updateFrontpage($oldFile, $newFrontpage, $replace = true) {
-			$this->logger->debug("update file: $oldFile with front matter $newFrontpage (replace: $replace)");
+			$this->log->debug("update file: $oldFile with front matter $newFrontpage (replace: $replace)");
 			
 			$newFrontpage = escapeshellarg($newFrontpage);
 			$oldFile = escapeshellarg($oldFile);
@@ -144,7 +145,7 @@ namespace dfm {
 			
 			$shell = "pdftk A=$newFrontpage B=$oldFile cat A1 B$pages output $tmpFile 2>&1"; // in production: $tmpFile == $oldFile
 						
-			$this->logger->debug($shell);
+			$this->log->debug($shell);
 			
 			$cut = shell_exec($shell);
 			
@@ -161,15 +162,15 @@ namespace dfm {
 		 */
 		public function updatePDFMetadata($file) {
 			$this->checkFile($file);
-			$this->logger->log("update PDF-Metadata: $file ");
+			$this->log->log("update PDF-Metadata: $file ");
 		
 			$shell = 'exiftool ' . $this->_pdfMetadataCommand() . ' ' . escapeshellarg($file) . " 2>&1";
 	
-			$this->logger->debug($shell);
+			$this->log->debug($shell);
 	
 			$response = shell_exec($shell);
 				
-			$this->logger->debug($response);
+			$this->log->debug($response);
 	
 			if (strpos($response, 'Warning:') !== false) {
 				$this->log->warning('exiftool warning:' . $response);

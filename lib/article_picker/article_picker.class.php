@@ -12,7 +12,8 @@ class article_selector {
 
     function setTemplateEnvironment() {
         $templateMgr =& \TemplateManager::getManager();
-        $templateMgr->assign('additionalHeadData', $this->_js_strings() . "\n<link rel='stylesheet' href='{$this->url}/article_picker.css' type='text/css' />\n<script src='{$this->url}/article_picker.js' ></script>");
+        $templateMgr->assign('additionalHeadData', $templateMgr->get_template_vars('additionalHeadData') .
+            $this->_js_strings() . "\n<link rel='stylesheet' href='{$this->url}/article_picker.css' type='text/css' />\n<script src='{$this->url}/article_picker.js' ></script>");
         $templateMgr->register_function('article_picker', array($this, "article_picker"));
     }
 

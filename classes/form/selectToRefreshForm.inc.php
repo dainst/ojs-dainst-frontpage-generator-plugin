@@ -36,16 +36,13 @@ class selectToReFreshForm extends Form {
 		return parent::display($request, $template);
 	}
 	
-	function execute() {
-		return  $this->_plugin->startUpdateFrontpages($this->getData('idlist'), $this->getData('type'), $this->getData('replace'));
-	}
 
 	
 	function readInputData() {
 		$vars = array(
-			'idlist' => "str",
-			'type' => $this->supportedTypes,
-			'replace' => 'bool'
+			'idlist' 	=> "str",
+			'type' 		=> $this->supportedTypes,
+			'replace' 	=> 'bool'
 		);
 		
 		foreach ($vars as $k => $type) {
