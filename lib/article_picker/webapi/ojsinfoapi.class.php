@@ -8,8 +8,8 @@ class ojsinfoapi extends server {
     function __construct($data, $logger, array $settings = array()) {
 
         parent::__construct($data, $logger, $settings);
-        $this->log->log('>>>' . print_r($this->data,1));
-        $this->log->log('>>>' . print_r($_POST,1));
+        //$this->log->log('>>>' . print_r($this->data,1));
+        //$this->log->log('>>>' . print_r($_POST,1));
     }
 
     function start() {
@@ -50,8 +50,6 @@ class ojsinfoapi extends server {
             }
         }
     }
-
-
 
     function issues() {
 

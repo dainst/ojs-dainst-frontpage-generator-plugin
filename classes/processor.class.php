@@ -22,7 +22,7 @@ class processor extends abstraction {
 
 	public $continue = false;  // data if not everything could processed at once
 
-
+    private $_ojsUser = null;
 
 
 	
@@ -41,11 +41,25 @@ class processor extends abstraction {
 	 */
 	function runFrontpageUpate($ids, $type) {
 
+
 		try {
 
             $this->log->log('Start Process');
 
-			// type given
+            // get session
+            $sessionManager =& \SessionManager::getManager();
+            $session =& $sessionManager->getUserSession();
+
+            // is logged in
+            if (!$session->user) {
+                throw new \Exception("no user logged in");
+            }
+
+            // get user
+            $this->_ojsUser = $session->user;
+
+
+            // type given
 			if (!in_array($type, \dfm\processor::supportedTypes)) {
 				throw new \Exception($type ? "ID type >>$type<< is not supported!" : "No ID type given!");
 			}
@@ -124,12 +138,14 @@ class processor extends abstraction {
 				$this->log->warning("galley skipped, no pdf galley: " . $galley->getId());
 				continue;
 			}
+
 			/*
 			if ($galley->_data['fileStage'] != 7) {
 				$this->log->warning("galley skipped, not public");
 				continue;
 			}
 			*/
+
 			// make sure we have an article, else: get it
 			if (is_numeric($article)) {
 				$article = $this->getArticle($article);
@@ -139,8 +155,13 @@ class processor extends abstraction {
 				$this->log->warning("galley skipped, article not found: " . print_r($article,1));
 				continue;
 			}
+
+			// make sure, we are allowed to edit article
+            if (!$this->isAllowed($article->getJournalId())) {
+                $this->log->warning("You have no suitable role to edit journal #" . $article->getJournalId());
+            }
 			
-			// make sure thatw we have a journal, or get it
+			// make sure that we have a journal, or get it
 			if (!$journal) {
 				$journal = $this->getJournal($article->getJournalId());
 			}
@@ -159,7 +180,19 @@ class processor extends abstraction {
 			);
 		}
 	}
-	
+
+    function isAllowed($journalId) {
+        $roleDAO = \DAORegistry::getDAO('RoleDAO');
+        $roles = $roleDAO->getRolesByUserId($this->_ojsUser->getId(), $journalId);
+        foreach ($roles as $role) {
+            if (in_array($role->getRolePath(), $this->settings->roleWhitelist)) {
+                //$this->log->debug("journal #$journalId may be accessed by you as " . $role->getRolePath());
+                return true;
+            }
+        }
+        return false;
+    }
+
 
 	/**
 	 * registers a galley by its id for going to be updated

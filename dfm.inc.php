@@ -114,6 +114,12 @@ class dfm extends GenericPlugin {
 			'theme'					=> $theme,
 			'doFrontmatters'		=> 'keep',
 			'doThumbnails'			=> false,
+			"roleWhitelist" => array(
+				'admin',
+				'manager',
+				'editor',
+				'sectionEditor',
+				'layoutEditor')
         );
 
         try {

@@ -34,7 +34,7 @@ class thumbnail_creator extends generator {
                 $this->log->warning('Thumbnail could not be created: ' . $return);
                 continue;
             }
-            $this->log->success('Thumbnail created: ' . $name);
+            $this->log->log('Thumbnail created: ' . $name);
         }
         return $names;
     }
