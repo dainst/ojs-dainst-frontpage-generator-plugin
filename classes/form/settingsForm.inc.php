@@ -53,7 +53,7 @@ class settingsForm extends Form {
 		}
 
         $thmode = Request::getUserVar('dfm_thumbmode');
-        if ($thmode and ($thmode != 'none')) {
+        if ($thmode) {
             $this->setData('thumbmode', $thmode);
         } else {
             $this->addError('dfm_thumbmode', 'This Thumbmode is not Valid. Select another.');
