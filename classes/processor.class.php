@@ -299,7 +299,7 @@ class processor extends abstraction {
 	 * runs over the list of registered galleys ($this->galleysToUpdate) and updates them
 	 * 
 	 * @param <bool> $removeMarker - if true, update the article to remove need-no-frontmatter-marker
-	 * @param <bool> $removeMarker - if true, only a maximum of item will be processed
+	 * @param <bool> $applyMaximumOprations - if true, only a maximum of item will be processed
 	 * both makes only sense to change in context of cli driven "replace missing", but that may change in further developpment
 	 *
 	 * @throws \Exception
@@ -412,6 +412,8 @@ class processor extends abstraction {
         $default = \AppLocale::getPrimaryLocale();
 
         $pdfFile = $pdfFile ? $pdfFile : $galleyItem->galley->getFilePath();
+
+        $this->log->log('create thumbnail from ' . $pdfFile);
 
         $thumbnail_creator = new \dfm\thumbnail_creator($this->log, $this->settings);
         $coverfile = $thumbnail_creator->createThumbnail($pdfFile, $metadata);

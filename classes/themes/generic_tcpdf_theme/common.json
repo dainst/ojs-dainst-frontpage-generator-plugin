@@ -1,0 +1,32 @@
+{
+	"terms": {
+		"en": "Terms of use: Do whatever you want with this."
+	},
+	"copyright": {
+		"en": "Creative Commons!"
+	},
+	"editor": {
+		"en": "Publishing editor"
+	},
+	"journal_url": {
+		"en": "For further information see"
+	},
+	"issn_printed": {
+		"en": "ISSN of the printed edition"
+	},
+	"issn_online": {
+		"en": "ISSN of the online edition"
+	},
+	"publisher": {
+		"en": "Publisher"
+	},
+	"pages": {
+		"en": "Page"
+	},
+	"from": {
+		"en": "from"
+	},
+	"issue_tag": {
+		"en": "Issue"
+	}
+}

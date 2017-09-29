@@ -7,7 +7,7 @@ class thumbnail_creator extends generator {
 
     function createThumbnail($fileToUpdate, $meta) {
         $this->log->log($fileToUpdate);
-        return $this->_createThumbnail_page1($fileToUpdate);
+        return $this->_createThumbnail_page0($fileToUpdate);
     }
 
     private function _createThumbnail_page0($fileToUpdate) {

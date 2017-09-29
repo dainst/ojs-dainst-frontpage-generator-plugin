@@ -147,7 +147,7 @@ class dfm extends GenericPlugin {
                         $form->readInputData();
                         if ($form->validate()) {
                             $this->settings->theme = $form->execute();
-                            $this->updateSetting(CONTEXT_ID_NONE, 'dfm_theme', $theme);
+                            $this->updateSetting(CONTEXT_ID_NONE, 'dfm_theme',  $form->getData('theme'));
                         }
                     }
 
