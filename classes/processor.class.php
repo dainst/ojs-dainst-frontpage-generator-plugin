@@ -101,7 +101,7 @@ class processor extends abstraction {
             $success = true;
 
 		} catch (\Exception $e) {
-			$this->log->danger($e->getMessage());
+			$this->log->error($e->getMessage());
 			$success = false;
 		}
 		
@@ -344,7 +344,15 @@ class processor extends abstraction {
 	 */
 	function processItem($galleyItem, $removeMarker = false) {
 
-	    $createThumbnail = in_array('thumbnail_creator', $this->settings->registry['generators']);
+	    if (!in_array('thumbnail_creator', $this->settings->registry['generators'])
+            or !isset($this->settings->thumbMode)
+            or ($this->settings->thumbMode == 'none')) {
+            $this->settings->doThumbnails = false;
+            $this->log->warning("thumbnail generator could not be loaded");
+        }
+
+
+
 
         $logToken = &$this->log->log('update galley "' . $galleyItem->galley->getLabel() . '" of article "' . $galleyItem->article->getLocalizedTitle() . '"');
 

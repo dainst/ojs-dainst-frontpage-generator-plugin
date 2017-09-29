@@ -36,9 +36,11 @@ class settingsForm extends Form {
         return parent::display($request, $template);
 	}
 
-	function execute() {
+	function execute($settings) {
         $this->_plugin->updateSetting(CONTEXT_ID_NONE, 'dfm_theme', $this->getData('theme'));
-        return $this->getData('theme');
+        $this->_plugin->updateSetting(CONTEXT_ID_NONE, 'dfm_thumbmode', $this->getData('thumbmode'));
+        $settings->theme = $this->getData('theme');
+        $settings->thumbMode = $this->getData('thumbmode');
 	}
 	
 	function readInputData() {
@@ -47,8 +49,15 @@ class settingsForm extends Form {
 		if ($theme and ($theme != 'none')) {
             $this->setData('theme', $theme);
 		} else {
-            $this->addError('theme', 'This Theme is not Valid. Select another.');
+            $this->addError('dfm_theme', 'This Theme is not Valid. Select another.');
 		}
+
+        $thmode = Request::getUserVar('dfm_thumbmode');
+        if ($thmode and ($thmode != 'none')) {
+            $this->setData('thumbmode', $thmode);
+        } else {
+            $this->addError('dfm_thumbmode', 'This Thumbmode is not Valid. Select another.');
+        }
 
 	}
 

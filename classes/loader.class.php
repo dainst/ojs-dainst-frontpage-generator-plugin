@@ -32,11 +32,12 @@ class loader {
 
 
             $classPaths = array(
-                'classes' => '/',
-                'checks' => '/checks/',
-                'generators' => '/generators/',
-                'journalpresets' => '/journalpresets/',
-                'themes' => '/themes/',
+                'classes'           => '/',
+                'checks'            => '/checks/',
+                'generators'        => '/generators/',
+                'journalpresets'    => '/journalpresets/',
+                'themes'            => '/themes/',
+                'thumbnailmodes'    => '/thumbnailmodes/'
             );
 
             foreach ($classPaths as $classClass => $classPath) {

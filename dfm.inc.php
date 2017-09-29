@@ -101,6 +101,7 @@ class dfm extends GenericPlugin {
 
 		$dfm_dr = ($verb != 'systemcheck') ? $this->getSetting(CONTEXT_ID_NONE, 'dfm_dr') : null;
 		$theme = $this->getSetting(CONTEXT_ID_NONE, 'dfm_theme');
+		$thmode = $this->getSetting(CONTEXT_ID_NONE, 'dfm_thumbmode');
 
         $this->settings = (object) array(
             'tmp_path'				=> Config::getVar('dainst', 'tmpPath'),
@@ -112,16 +113,17 @@ class dfm extends GenericPlugin {
 			'dependencies_resolved' => is_null($dfm_dr) ? array() : $dfm_dr,
 			'registry'				=> array(),
 			'theme'					=> $theme,
+			'thumbMode'				=> $thmode,
 			'doFrontmatters'		=> 'keep',
 			'doThumbnails'			=> false,
-			"roleWhitelist" => array(
+			'roleWhitelist' 		=> array(
 				'admin',
 				'manager',
 				'editor',
 				'sectionEditor',
 				'layoutEditor')
         );
-
+//die($thmode);
         try {
 
 			// load dfm stuff
@@ -146,8 +148,10 @@ class dfm extends GenericPlugin {
                     if (Request::getUserVar('save')) {
                         $form->readInputData();
                         if ($form->validate()) {
-                            $this->settings->theme = $form->execute();
-                            $this->updateSetting(CONTEXT_ID_NONE, 'dfm_theme',  $form->getData('theme'));
+                            //$this->settings->theme =
+								$form->execute($this->settings);
+                            //$this->settings->thumbnailMode = $form->execute();
+                            //$this->updateSetting(CONTEXT_ID_NONE, 'dfm_theme',  $form->getData('theme'));
                         }
                     }
 

@@ -33,4 +33,5 @@
 
 	<message key="plugins.generic.dainstFrontmatter.settings">Settings</message>
 	<message key="plugins.generic.dainstFrontmatter.selectTheme">Select Theme</message>
+	<message key="plugins.generic.dainstFrontmatter.thumbMode">Thumbnail Creation Mode</message>
 </locale>

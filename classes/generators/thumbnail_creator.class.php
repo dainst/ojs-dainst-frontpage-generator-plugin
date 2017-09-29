@@ -7,20 +7,28 @@ class thumbnail_creator extends generator {
 
     function createThumbnail($fileToUpdate, $meta) {
         $this->log->log($fileToUpdate);
-        return $this->_createThumbnail_page0($fileToUpdate);
+
+        if (!isset($this->settings->thumbMode) or ($this->settings->thumbMode == 'none')) {
+            throw new \Exception("Nop proper Thumnail Mode set" );
+            return "";
+        }
+
+        $classname = "\dfm\\" . $this->settings->thumbMode;
+
+        if (!class_exists($classname)) {
+            throw new \Exception("Class $classname does not exist");
+            return "";
+        }
+
+        $mode = new $classname($this->log, $this->settings);
+
+        return $mode->createThumbnail($this, $fileToUpdate);
     }
 
-    private function _createThumbnail_page0($fileToUpdate) {
-        $files =  $this->_createImages($fileToUpdate, array(0));
-        return isset($files[0]) ? $files[0] : '';
-    }
 
-    private function _createThumbnail_page1($fileToUpdate) {
-        $files =  $this->_createImages($fileToUpdate, array(1));
-        return isset($files[0]) ? $files[0] : '';
-    }
 
-    private function _createImages($inputfile, $pages) {
+
+    function createImages($inputfile, $pages) {
         $names = [];
         $tmp_folder = $this->settings->tmp_path . '/';
         $outputfile = md5(microtime() . rand());

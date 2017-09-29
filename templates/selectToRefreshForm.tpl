@@ -24,6 +24,10 @@
         <input type="checkbox" name="thumbnails" id="checkThumbnail">
         <label for="checkThumbnail">{translate key="plugins.generic.dainstFrontmatter.button.thumbnail"}</label>
 
+        {if ($settings.thumbMode|get_availability)}
+            <p>{translate key="plugins.generic.dainstFrontmatter.thumbMode"}: {$settings.thumbMode|get_title}!</p>
+        {/if}
+
         {if ($settings.theme|get_availability)}
             <p>{translate key="plugins.generic.dainstFrontmatter.selectedTheme"}: {$settings.theme|get_title}</p>
             <input type="submit" name="save" class="button defaultButton" value='{translate key="plugins.generic.dainstFrontmatter.button.update"}' />

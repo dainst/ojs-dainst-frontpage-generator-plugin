@@ -25,6 +25,19 @@
             <label for="check-theme-{$theme}">{$theme|get_title}</label><br>
         {/foreach}
 
+        <p>{translate key="plugins.generic.dainstFrontmatter.selectThumbmode"}</p>
+        {foreach from=$settings.registry.thumbnailmodes item=thmode }
+
+            <input
+                    type="radio"
+                    name="dfm_thumbmode"
+                    id="check-thmode-{$thmode}"
+                    value="{$thmode}"
+                    {if ($thmode eq $settings.thumbMode)}checked{/if}
+            >
+            <label for="check-theme-{$thmode}">{$thmode|get_title}</label><br>
+        {/foreach}
+
         <br>
         <input type="submit" name="save" class="button defaultButton" value="{translate key="common.save"}"/>
         <input type="button" class="button" value="{translate key="common.cancel"}" onclick="history.go(-1)"/>

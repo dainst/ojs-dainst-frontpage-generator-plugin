@@ -25,6 +25,7 @@
 	<message key="plugins.generic.as.goBack">Go Back..</message>
 
 	<message key="plugins.generic.dainstFrontmatter.systemCheck">System-Check</message>
-
+	<message key="plugins.generic.dainstFrontmatter.selectTheme">Select Theme</message>
+	<message key="plugins.generic.dainstFrontmatter.thumbMode">Thumbnail Creation Mode</message>
 
 </locale>
