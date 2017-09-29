@@ -39,7 +39,7 @@ class processor extends abstraction {
 	 * @param <type> $type - type of that object: journal, article or galley (or missing)
 	 * @return <bool|string> - true if success, as text message if error
 	 */
-	function runFrontpageUpate($ids, $type, $updateFrontpages = true) {
+	function runFrontpageUpate($ids, $type) {
 
 		try {
 
@@ -50,15 +50,18 @@ class processor extends abstraction {
 				throw new \Exception($type ? "ID type >>$type<< is not supported!" : "No ID type given!");
 			}
 			
-			// update or replace fm
-			$this->updateFrontpages = $updateFrontpages;
-			$this->log->log($updateFrontpages ? 'REPLACE front matter mode' : 'ADD front matter mode');
-			
+            if ($this->settings->doFrontmatters == 'replace') {
+                $this->log->log('REPLACE front matter mode');
+            }
+            if ($this->settings->doFrontmatters == 'create') {
+                $this->log->log('PREPEND front matter mode');
+            }
+
 			// get and clean tmpFolder
 			$this->log->debug("tmp path: ". $this->settings->tmp_path);
 			$this->cleanTmpFolder();
 
-			// idlist
+			// idlist.
 			$ids = !is_array($ids) ? array($ids): $ids;
 			$this->log->log("Ids of type $type:" . implode($ids, ', '));
 
@@ -308,41 +311,106 @@ class processor extends abstraction {
 	 */
 	function processItem($galleyItem, $removeMarker = false) {
 
-		$logToken = &$this->log->log('update galley "' . $galleyItem->galley->getLabel() . '" of article "' . $galleyItem->article->getLocalizedTitle() . '"');
+	    $createThumbnail = in_array('thumbnail_creator', $this->settings->registry['generators']);
 
-		try {
+        $logToken = &$this->log->log('update galley "' . $galleyItem->galley->getLabel() . '" of article "' . $galleyItem->article->getLocalizedTitle() . '"');
 
-			// get generator
-            $tcpdf_fm_creator = $this->getGenerator($galleyItem);
+        $tmpFile = null;
 
-			// create new front matter
-			$newFrontmatterFile = $tcpdf_fm_creator->createFrontPage();
+        try {
 
-			// attach frontpage to file
-			$tmpFile = $tcpdf_fm_creator->updateFrontpage($tcpdf_fm_creator->fileToUpdate, $newFrontmatterFile, $this->updateFrontpages);
+		    if ($this->settings->doFrontmatters != 'keep') {
 
-			// update pdf metadata
-			$tmpFile = $tcpdf_fm_creator->updatePDFMetadata($tmpFile);
+                // get generator
+                $generator = $this->getGenerator($galleyItem);
 
-			// now that everythings seems to have worked (otherwise we would not be here but in an \Exception handler hopefully),
-			// we can copy back the shiny and overwrite the old one...
-			$this->replaceFile($galleyItem, $tmpFile);
+                // create new front matter
+                $newFrontmatterFile = $generator->createFrontPage();
 
-			// if removeMarker is set (we come from the importer most likely)
-			if ($removeMarker) {
-				$this->removeMarker($galleyItem);
-			}
+                // attach frontpage to file
+                $tmpFile = $generator->updateFrontpage($generator->fileToUpdate, $newFrontmatterFile, ($this->settings->doFrontmatters == 'replace'));
 
-			// log that marvelous success!
-			$logToken->text .= ' ... success!';
-			$logToken->type = 'success';
+                // update pdf metadata
+                $tmpFile = $generator->updatePDFMetadata($tmpFile);
+
+                // now that everythings seems to have worked (otherwise we would not be here but in an \Exception handler hopefully),
+                // we can copy back the shiny and overwrite the old one...
+                $this->replaceFile($galleyItem, $tmpFile);
+
+                // if removeMarker is set (we come from the importer most likely)
+                if ($removeMarker) {
+                    $this->removeMarker($galleyItem);
+                }
+
+                // log that marvelous success!
+                $logToken->text .= ' ... success!';
+                $logToken->type = 'success';
+
+            }
 
 		} catch (\Exception $e) {
 			$logToken->text .= ' ... error!' . "\n<br>" . $e->getMessage();
 			$logToken->type = 'warning';
 		}
+
+
+        $logToken = &$this->log->log('create thumbnail for galley "' . $galleyItem->galley->getLabel() . '" of article "' . $galleyItem->article->getLocalizedTitle() . '"');
+
+        try {
+
+            if ($this->settings->doThumbnails) {
+
+                // generate thumpnail if desired
+                $this->createThumbnail($galleyItem,$tmpFile);
+
+                $logToken->text .= ' ... success!';
+                $logToken->type = 'success';
+            }
+
+		} catch (\Exception $e) {
+            $logToken->text .= ' ... error!' . "\n<br>" . $e->getMessage();
+            $logToken->type = 'warning';
+        }
+
 	}
-	
+
+	function createThumbnail($galleyItem, $pdfFile, $metadata = array()) {
+
+        $default = \AppLocale::getPrimaryLocale();
+
+        $pdfFile = $pdfFile ? $pdfFile : $galleyItem->galley->getFilePath();
+
+        $thumbnail_creator = new \dfm\thumbnail_creator($this->log, $this->settings);
+        $coverfile = $thumbnail_creator->createThumbnail($pdfFile, $metadata);
+
+        $article = $galleyItem->article;
+
+        $article->setCoverPageAltText('', $default);
+        $article->setHideCoverPageToc(false, $default);
+        $article->setHideCoverPageAbstract(false, $default);
+
+        import('classes.file.PublicFileManager');
+        $publicFileManager = new \PublicFileManager();
+
+        $newFileName = 'cover_article_' . $article->getId() . '_'  . $default .  '.' . pathinfo($coverfile, PATHINFO_EXTENSION);
+
+        $publicFileManager->copyJournalFile($galleyItem->journal->getId(), $coverfile, $newFileName);
+
+        $originalFileName = basename($coverfile);
+        list($width, $height) = getimagesize($publicFileManager->getJournalFilesPath($galleyItem->journal->getId()) . '/' . $newFileName);
+
+        $article->setOriginalFileName($publicFileManager->truncateFileName($originalFileName, 127), $default);
+        $article->setFileName($newFileName, $default);
+        $article->setWidth($width, $default);
+        $article->setHeight($height, $default);
+        $article->setShowCoverPage(true, $default);
+
+        $articleDao =& \DAORegistry::getDAO('ArticleDAO');
+        $articleDao->updateArticle($article);
+
+
+    }
+
 	/**
 	 * 
 	 * @param <Galley> $galleyItem
@@ -502,6 +570,10 @@ class processor extends abstraction {
         $generator->setJournalPreset($journalAbb);
         $generator->setMetadata($meta);
         $generator->fileToUpdate = $fileToUpdate;
+
+
+
+
 		return $generator;
 	}
 
@@ -516,7 +588,7 @@ class processor extends abstraction {
 		}
 		$galleyDao =& \DAORegistry::getDAO('ArticleGalleyDAO');
 		foreach ($this->galleysToUpdate as $galleyItem) {
-			if ($galleyItem->dirty === true) {
+			if (isset($galleyItem->dirty) and ($galleyItem->dirty === true)) {
 				$id = $galleyItem->newGalley->getId();
 				$galleyDao->deleteGalley($galleyItem->newGalley);
 				$galleyItem->dirty = false;

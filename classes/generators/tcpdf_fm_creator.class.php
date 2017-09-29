@@ -76,7 +76,7 @@ namespace dfm {
                 throw new \Exception("Class $classname not found!");
             }
 			$pdf = new $classname($this->log,$this->settings);
-            if (method_exists($this->journalpreset, applyToTheme)) {
+            if (method_exists($this->journalpreset, 'applyToTheme')) {
                 $this->journalpreset->applyToTheme($pdf, $this->metadata);
             }
 			$pdf->init($this->metadata);

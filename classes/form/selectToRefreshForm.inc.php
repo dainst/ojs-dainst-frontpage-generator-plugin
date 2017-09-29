@@ -40,9 +40,10 @@ class selectToReFreshForm extends Form {
 	
 	function readInputData() {
 		$vars = array(
-			'idlist' 	=> "str",
-			'type' 		=> $this->supportedTypes,
-			'replace' 	=> 'bool'
+			'idlist' 		=> "str",
+			'type' 			=> $this->supportedTypes,
+			'frontmatters' 	=> array('create', 'replace', 'keep'),
+			'thumbnails'	=> 'bool'
 		);
 		
 		foreach ($vars as $k => $type) {

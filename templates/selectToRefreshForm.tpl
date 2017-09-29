@@ -12,12 +12,17 @@
 
         {article_picker}
 
-
-        <input type="checkbox" name="replace" checked="checked" id="checkReplace">
-        <label for="checkReplace">{translate key="plugins.generic.dainstFrontmatter.button.replace"}</label>
+        <input type="radio" name="frontmatters" id="checkCreate" value="create">
+        <label for="checkCreate">{translate key="plugins.generic.dainstFrontmatter.button.createfm"}</label>
         <br>
-        <input type="checkbox" name="thumpnails" disabled id="checkThumpnail">
-        <label for="checkReplace">{translate key="plugins.generic.dainstFrontmatter.button.thumpnail"}</label>
+        <input type="radio" name="frontmatters" id="checkReplace" value="replace">
+        <label for="checkReplace">{translate key="plugins.generic.dainstFrontmatter.button.replacefm"}</label>
+        <br>
+        <input type="radio" name="frontmatters" checked="checked" id="keep" value="keep">
+        <label for="keep">{translate key="plugins.generic.dainstFrontmatter.button.keepfm"}</label>
+        <br>
+        <input type="checkbox" name="thumbnails" id="checkThumbnail">
+        <label for="checkThumbnail">{translate key="plugins.generic.dainstFrontmatter.button.thumbnail"}</label>
 
         {if ($settings.theme|get_availability)}
             <p>{translate key="plugins.generic.dainstFrontmatter.selectedTheme"}: {$settings.theme|get_title}</p>

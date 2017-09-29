@@ -23,8 +23,10 @@
 
 	<message key="plugins.generic.dainstFrontmatter.button.update">Update Front Matter(s)</message>
 	<message key="plugins.generic.dainstFrontmatter.updated">Front Matter has been updated. FUCK</message>
-	<message key="plugins.generic.dainstFrontmatter.button.replace"><![CDATA[<b>Replace</b> Front Matter]]></message>
-	<message key="plugins.generic.dainstFrontmatter.button.thumpnail">Create Thumpnail</message>
+	<message key="plugins.generic.dainstFrontmatter.button.createfm"><![CDATA[<b>Prepend</b> new Front Matter]]></message>
+	<message key="plugins.generic.dainstFrontmatter.button.replacefm"><![CDATA[<b>Replace</b> Front Matter]]></message>
+	<message key="plugins.generic.dainstFrontmatter.button.keepfm">Do not create a new Front Matter</message>
+	<message key="plugins.generic.dainstFrontmatter.button.thumbnail">Create Thumbnail</message>
 	<message key="plugins.generic.dainstFrontmatter.selectedTheme">Selected Theme</message>
 	<message key="plugins.generic.dainstFrontmatter.selectedThemeNone">No Valid Theme selected!</message>
 

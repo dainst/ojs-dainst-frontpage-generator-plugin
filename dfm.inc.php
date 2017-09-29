@@ -99,7 +99,7 @@ class dfm extends GenericPlugin {
         $templateMgr->assign('additionalHeadData', $templateMgr->get_template_vars('additionalHeadData') . "<link rel='stylesheet' href='$theUrl/dfm.css' type='text/css' />");
         $templateMgr->assign('thePath', $ojsPath . $this->pluginPath); // we need this?
 
-		$dfm_dr = ($verb != 'systemcheck') ? $this->getSetting(CONTEXT_ID_NONE, 'dfm_dr') : '';
+		$dfm_dr = ($verb != 'systemcheck') ? $this->getSetting(CONTEXT_ID_NONE, 'dfm_dr') : null;
 		$theme = $this->getSetting(CONTEXT_ID_NONE, 'dfm_theme');
 
         $this->settings = (object) array(
@@ -111,7 +111,9 @@ class dfm extends GenericPlugin {
 			'url'					=> $theUrl,
 			'dependencies_resolved' => is_null($dfm_dr) ? array() : $dfm_dr,
 			'registry'				=> array(),
-			'theme'					=> $theme
+			'theme'					=> $theme,
+			'doFrontmatters'		=> 'keep',
+			'doThumbnails'			=> false,
         );
 
         try {
@@ -157,7 +159,9 @@ class dfm extends GenericPlugin {
 					if (Request::getUserVar('save')) {
 						$form->readInputData();
 						if ($form->validate()) {
-                           	$this->startUpdateFrontpages($form->getData('idlist'), $form->getData('type'), $form->getData('replace'));
+                            $this->settings->doFrontmatters = $form->getData('frontmatters');
+                            $this->settings->doThumbnails = $form->getData('thumbnails');
+                           	$this->startUpdateFrontpages($form->getData('idlist'), $form->getData('type'));
 							$templateMgr->display(dirname(__FILE__) . '/templates/log.tpl');
 							break;
 						}
@@ -173,6 +177,8 @@ class dfm extends GenericPlugin {
 
 				case 'systemcheck':
 					// systemcheck is performed by loader, we just need to show results
+					$this->logger->log('Active modules:');
+                    $this->logger->log($this->settings->registry);
                     $templateMgr->assign('settings', (array) $this->settings);
 					$templateMgr->display(dirname(__FILE__) . '/templates/system_check.tpl');
                     break;
