@@ -1,4 +1,8 @@
 <?php
+
+/*
+ * @ TODO if manager/setup/3 Copyright basis is not set, there is an error in Article.php 231 check dat
+ */
 namespace dfm;
 class processor extends abstraction {
 
@@ -41,7 +45,6 @@ class processor extends abstraction {
 	 */
 	function runFrontpageUpate($ids, $type) {
 
-
 		try {
 
             $this->log->log('Start Process');
@@ -51,7 +54,7 @@ class processor extends abstraction {
             $session =& $sessionManager->getUserSession();
 
             // is logged in
-            if (!$session->user) {
+            if (!$session->user and $this->settings->checkPermission) {
                 throw new \Exception("no user logged in");
             }
 
@@ -101,7 +104,7 @@ class processor extends abstraction {
             $success = true;
 
 		} catch (\Exception $e) {
-			$this->log->error($e->getMessage());
+			$this->log->danger($e->getMessage());
 			$success = false;
 		}
 		
@@ -182,6 +185,10 @@ class processor extends abstraction {
 	}
 
     function isAllowed($journalId) {
+	    if (!$this->settings->checkPermission) {
+	        return true;
+        }
+
         $roleDAO = \DAORegistry::getDAO('RoleDAO');
         $roles = $roleDAO->getRolesByUserId($this->_ojsUser->getId(), $journalId);
         foreach ($roles as $role) {
@@ -256,6 +263,7 @@ class processor extends abstraction {
 	function getJournal($id) {
 		$journalDao =& \DAORegistry::getDAO('JournalDAO');
 		$journal =& $journalDao->getJournal($id);
+
 		return $journal;
 	}
 
@@ -344,23 +352,13 @@ class processor extends abstraction {
 	 */
 	function processItem($galleyItem, $removeMarker = false) {
 
-	    if (!in_array('thumbnail_creator', $this->settings->registry['generators'])
-            or !isset($this->settings->thumbMode)
-            or ($this->settings->thumbMode == 'none')) {
-            $this->settings->doThumbnails = false;
-            $this->log->warning("thumbnail generator could not be loaded");
-        }
-
-
-
-
-        $logToken = &$this->log->log('update galley "' . $galleyItem->galley->getLabel() . '" of article "' . $galleyItem->article->getLocalizedTitle() . '"');
-
         $tmpFile = null;
 
-        try {
+        if ($this->settings->doFrontmatters != 'keep') {
 
-		    if ($this->settings->doFrontmatters != 'keep') {
+            $logToken = &$this->log->log('update galley "' . $galleyItem->galley->getLabel() . '" of article "' . $galleyItem->article->getLocalizedTitle() . '"');
+
+            try {
 
                 // get generator
                 $generator = $this->getGenerator($galleyItem);
@@ -387,30 +385,40 @@ class processor extends abstraction {
                 $logToken->text .= ' ... success!';
                 $logToken->type = 'success';
 
+            } catch (\Exception $e) {
+                $logToken->text .= ' ... error!' . "\n<br>" . $e->getMessage();
+                $logToken->type = 'warning';
             }
 
-		} catch (\Exception $e) {
-			$logToken->text .= ' ... error!' . "\n<br>" . $e->getMessage();
-			$logToken->type = 'warning';
-		}
+        }
 
+        if (!isset($this->settings->thumbMode)) {
+            $this->settings->thumbMode = false;
+        }
 
-        $logToken = &$this->log->log('create thumbnail for galley "' . $galleyItem->galley->getLabel() . '" of article "' . $galleyItem->article->getLocalizedTitle() . '"');
+        if ($this->settings->doThumbnails or ($this->settings->thumbMode == 'none')) {
 
-        try {
+            $logToken = &$this->log->log('create thumbnail for galley "' . $galleyItem->galley->getLabel() . '" of article "' . $galleyItem->article->getLocalizedTitle() . '"');
 
-            if ($this->settings->doThumbnails) {
+            try {
+
+                // thumbnail creator available?
+                if (!in_array('thumbnail_creator', $this->settings->registry['generators'])) {
+                    $this->settings->doThumbnails = false;
+                    throw new \Exception("thumbnail generator could not be loaded");
+                }
 
                 // generate thumpnail if desired
-                $this->createThumbnail($galleyItem,$tmpFile);
+                $this->createThumbnail($galleyItem, $tmpFile);
 
                 $logToken->text .= ' ... success!';
                 $logToken->type = 'success';
-            }
 
-		} catch (\Exception $e) {
-            $logToken->text .= ' ... error!' . "\n<br>" . $e->getMessage();
-            $logToken->type = 'warning';
+
+            } catch (\Exception $e) {
+                $logToken->text .= ' ... error!' . "\n<br>" . $e->getMessage();
+                $logToken->type = 'warning';
+            }
         }
 
 	}

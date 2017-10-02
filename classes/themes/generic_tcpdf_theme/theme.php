@@ -27,7 +27,7 @@ class generic_tcpdf_theme extends \TCPDF {
         $format = 'A4';
         parent::__construct('P', 'mm', $format, true, 'UTF-8', false, false);
         $this->lang = json_decode(file_get_contents($this->settings->theme_path . '/common.json'));
-        if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+        if ($this->lang  === null && json_last_error() !== JSON_ERROR_NONE) {
             throw new \Exception("JSON Error in common.json");
         }
     }

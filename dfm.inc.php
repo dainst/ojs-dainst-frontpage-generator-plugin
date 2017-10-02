@@ -70,6 +70,65 @@ class dfm extends GenericPlugin {
 		return parent::getManagementVerbs($verbs);
 	}
 
+	function loadDfm($verb = 'none') {
+        $theUrl = Request::getBaseUrl() . '/' . $this->pluginPath;
+        $ojsPath = dirname(dirname(dirname(dirname(__FILE__))));
+
+        $journal =& Request::getJournal();
+        $journalId = ($journal ? $journal->getId() : CONTEXT_ID_NONE);
+
+        $templateMgr =& TemplateManager::getManager();
+        $templateMgr->setCacheability(CACHEABILITY_MUST_REVALIDATE);
+        //$templateMgr->debugging = true;
+        $templateMgr->register_function('themResults', array($this, "returnLog"));
+        $templateMgr->register_function('plugin_url', array(&$this, 'smartyPluginUrl'));
+        $templateMgr->register_modifier('get_title', array(&$this, 'getModuleTitle'));
+        $templateMgr->register_modifier('get_availability', array(&$this, 'getModuleAvailability'));
+        $templateMgr->register_function('plugin_menu', array(&$this, 'pluginMenu'));
+
+        $templateMgr->assign('additionalHeadData', $templateMgr->get_template_vars('additionalHeadData') . "<link rel='stylesheet' href='$theUrl/dfm.css' type='text/css' />");
+        $templateMgr->assign('thePath', $ojsPath . $this->pluginPath); // we need this?
+
+        $dfm_dr = ($verb != 'systemcheck') ? $this->getSetting(CONTEXT_ID_NONE, 'dfm_dr') : null;
+        $theme = $this->getSetting(CONTEXT_ID_NONE, 'dfm_theme');
+        $thmode = $this->getSetting(CONTEXT_ID_NONE, 'dfm_thumbmode');
+
+        $this->settings = (object) array(
+            'tmp_path'				=> Config::getVar('dainst', 'tmpPath'),
+            'lib_path'				=> $this->pluginPath . '/lib',
+            'dfm_path'				=> $this->pluginPath,
+            'files_path'			=> $this->pluginPath . '/classes/pdfWorker/files', //TODO remove?!
+            'ojs_path'				=> $ojsPath,
+            'url'					=> $theUrl,
+            'dependencies_resolved' => is_null($dfm_dr) ? array() : $dfm_dr,
+            'registry'				=> array(),
+            'theme'					=> $theme,
+            'thumbMode'				=> $thmode,
+            'doFrontmatters'		=> 'keep',
+            'doThumbnails'			=> false,
+            'checkPermission'		=> true,
+            'roleWhitelist' 		=> array(
+                'admin',
+                'manager',
+                'editor',
+                'sectionEditor',
+                'layoutEditor')
+        );
+
+        // load dfm stuff
+        require_once('classes/loader.class.php');
+        $loader = new \dfm\loader();
+        if (!$loader->load($this->logger, $this->settings)) {
+            throw new Exception("Error Loading DFM");
+        }
+        //$plugin->logger->debugmode = true;
+
+        // if we had no system check results stored, store them for next time
+        if (is_null($dfm_dr)) {
+            $dfm_dr = $this->updateSetting(CONTEXT_ID_NONE, 'dfm_dr', $this->settings->dependencies_resolved);
+        }
+	}
+
 	/**
 	 * Execute a management verb on this plugin
 	 * @param $verb string
@@ -80,62 +139,13 @@ class dfm extends GenericPlugin {
 	function manage($verb, $args, &$message, &$messageParams) {
 		if (!parent::manage($verb, $args, $message, $messageParams)) return false;
 
-        $theUrl = Request::getBaseUrl() . '/' . $this->pluginPath;
-        $ojsPath = dirname(dirname(dirname(dirname(__FILE__))));
-
+        $templateMgr =& TemplateManager::getManager();
         $journal =& Request::getJournal();
         $journalId = ($journal ? $journal->getId() : CONTEXT_ID_NONE);
 
-		$journal =& Request::getJournal();
-		$templateMgr =& TemplateManager::getManager();
-        $templateMgr->setCacheability(CACHEABILITY_MUST_REVALIDATE);
-		//$templateMgr->debugging = true;
-		$templateMgr->register_function('themResults', array($this, "returnLog"));
-        $templateMgr->register_function('plugin_url', array(&$this, 'smartyPluginUrl'));
-        $templateMgr->register_modifier('get_title', array(&$this, 'getModuleTitle'));
-        $templateMgr->register_modifier('get_availability', array(&$this, 'getModuleAvailability'));
-        $templateMgr->register_function('plugin_menu', array(&$this, 'pluginMenu'));
-
-        $templateMgr->assign('additionalHeadData', $templateMgr->get_template_vars('additionalHeadData') . "<link rel='stylesheet' href='$theUrl/dfm.css' type='text/css' />");
-        $templateMgr->assign('thePath', $ojsPath . $this->pluginPath); // we need this?
-
-		$dfm_dr = ($verb != 'systemcheck') ? $this->getSetting(CONTEXT_ID_NONE, 'dfm_dr') : null;
-		$theme = $this->getSetting(CONTEXT_ID_NONE, 'dfm_theme');
-		$thmode = $this->getSetting(CONTEXT_ID_NONE, 'dfm_thumbmode');
-
-        $this->settings = (object) array(
-            'tmp_path'				=> Config::getVar('dainst', 'tmpPath'),
-            'lib_path'				=> $this->pluginPath . '/lib',
-            'dfm_path'				=> $this->pluginPath,
-            'files_path'			=> $this->pluginPath . '/classes/pdfWorker/files', //TODO remove?!
-			'ojs_path'				=> $ojsPath,
-			'url'					=> $theUrl,
-			'dependencies_resolved' => is_null($dfm_dr) ? array() : $dfm_dr,
-			'registry'				=> array(),
-			'theme'					=> $theme,
-			'thumbMode'				=> $thmode,
-			'doFrontmatters'		=> 'keep',
-			'doThumbnails'			=> false,
-			'roleWhitelist' 		=> array(
-				'admin',
-				'manager',
-				'editor',
-				'sectionEditor',
-				'layoutEditor')
-        );
-//die($thmode);
         try {
 
-			// load dfm stuff
-			require_once('classes/loader.class.php');
-			$loader = new \dfm\loader();
-			if (!$loader->load($this->logger, $this->settings)) {
-                throw new Exception("Error Loading DFM");
-			}
-			// if we had no system check results stored, store them for next time
-			if (is_null($dfm_dr)) {
-				$dfm_dr = $this->updateSetting(CONTEXT_ID_NONE, 'dfm_dr', $this->settings->dependencies_resolved);
-			}
+			$this->loadDfm($verb);
 
 			$pickerloader = new \dfm\ojs2ui($this->logger, $this->settings);
 
@@ -148,10 +158,7 @@ class dfm extends GenericPlugin {
                     if (Request::getUserVar('save')) {
                         $form->readInputData();
                         if ($form->validate()) {
-                            //$this->settings->theme =
-								$form->execute($this->settings);
-                            //$this->settings->thumbnailMode = $form->execute();
-                            //$this->updateSetting(CONTEXT_ID_NONE, 'dfm_theme',  $form->getData('theme'));
+							$form->execute($this->settings);
                         }
                     }
 
@@ -208,15 +215,15 @@ class dfm extends GenericPlugin {
 	
 	
 	/* the function itself */ 
-	function startUpdateFrontpages($ids, $type, $updateFrontpages = true, $is_cli = false) {
+	function startUpdateFrontpages($ids, $type, $is_cli = false) {
+
 		$processor = new \dfm\processor($this->logger, $this->settings);
 		$ids = (!is_array($ids)) ? explode(',', $ids) : $ids;
-		$success = $processor->runFrontpageUpate($ids, $type, $updateFrontpages);
+
+        $success = $processor->runFrontpageUpate($ids, $type);
 
 		if ($is_cli) {
-			echo ($success === true) ? "\nSUCCESS \n" : "\nERROR: $success \n";
-		} else {
-			//echo ($success === true) ? '' : "<div class='alert alert-danger'>ERROR: $success</div>";
+			echo ($success === true) ? "SUCCESS \n" .$this->logger->dumpLog(true, true): "\nERROR: \n" . $this->logger->dumpLog(true, true);
 		}
 
 		//echo $processor->log->dumpLog(true, $is_cli);

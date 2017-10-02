@@ -9,7 +9,7 @@ class thumbnail_creator extends generator {
         $this->log->log($fileToUpdate);
 
         if (!isset($this->settings->thumbMode) or ($this->settings->thumbMode == 'none')) {
-            throw new \Exception("Nop proper Thumnail Mode set" );
+            throw new \Exception("No proper Thumnail Mode set: " . print_r($this->settings->thumbMode,1));
             return "";
         }
 
