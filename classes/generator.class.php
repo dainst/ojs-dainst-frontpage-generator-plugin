@@ -71,7 +71,7 @@ class generator extends abstraction {
             }
         }
 
-        if ($this->journalpreset and method_exists($this->journalpreset, setMetadata)) {
+        if ($this->journalpreset and method_exists($this->journalpreset, "setMetadata")) {
             $this->metadata = $this->journalpreset->setMetadata($data);
         }
 

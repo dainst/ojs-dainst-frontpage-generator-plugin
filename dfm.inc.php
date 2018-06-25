@@ -121,7 +121,7 @@ class dfm extends GenericPlugin {
         if (!$loader->load($this->logger, $this->settings)) {
             throw new Exception("Error Loading DFM");
         }
-        //$plugin->logger->debugmode = true;
+        $plugin->logger->debugmode = false;
 
         // if we had no system check results stored, store them for next time
         if (is_null($dfm_dr)) {
@@ -244,6 +244,7 @@ class dfm extends GenericPlugin {
 			}
 		}
 
+		return $success;
 
 	}
 	

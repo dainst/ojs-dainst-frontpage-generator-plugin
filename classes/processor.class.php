@@ -162,6 +162,7 @@ class processor extends abstraction {
 			// make sure, we are allowed to edit article
             if (!$this->isAllowed($article->getJournalId())) {
                 $this->log->warning("You have no suitable role to edit journal #" . $article->getJournalId());
+                continue;
             }
 			
 			// make sure that we have a journal, or get it
@@ -224,8 +225,12 @@ class processor extends abstraction {
 	 * @param <Journal*> $journal
 	 */
 	function getArticleGalleys($id, $journal = null) {
-		$galleyDao =& \DAORegistry::getDAO('ArticleGalleyDAO');
-		$this->registerGalleys($galleyDao->getGalleysByArticle($id), $id, $journal);
+	    $galleyDao =& \DAORegistry::getDAO('ArticleGalleyDAO');
+	    $galleys = $galleyDao->getGalleysByArticle($id);
+	    if (!count($galleys)) {
+	        $this->log->warning("No galleys found for Article #$id.");
+        }
+		$this->registerGalleys($galleys, $id, $journal);
 	}
 	
 	function getIssueGalleys($id) {
