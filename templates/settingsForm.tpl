@@ -20,7 +20,6 @@
                     id="check-theme-{$theme}"
                     value="{$theme}"
                     {if ($theme eq $settings.theme)}checked{/if}
-                    {if (!$theme|get_availability)}disabled{/if}
             >
             <label for="check-theme-{$theme}">{$theme|get_title}</label><br>
         {/foreach}
