@@ -3,7 +3,7 @@ namespace dfm;
 class ejb extends journalpreset {
 	function setMetadata($data) {
 
-		$data['publisher'] = "Annika Busching (<a style=\"color: black; text-decoration: none;\" href=\"mailto:jahresbericht@dainst.de\">jahresbericht@dainst.de</a>)<br /> Gestalterisches Konzept: Hawemann &amp; Mosch<br /> Länderkarten: © 2017 <a style=\"color: black; text-decoration: none;\" href=\"http://www.mapbox.com\">www.mapbox.com</a>";
+		$data['publisher'] = "Janina Rücker (<a style=\"color: black; text-decoration: none;\" href=\"mailto:jahresbericht@dainst.de\">jahresbericht@dainst.de</a>)<br /> Gestalterisches Konzept: Hawemann &amp; Mosch<br /> Länderkarten: © 2017 <a style=\"color: black; text-decoration: none;\" href=\"http://www.mapbox.com\">www.mapbox.com</a>";
 		return $data;
 	}
 
